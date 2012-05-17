@@ -1,0 +1,21 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<style type="text/css">
+    #id_codice_fiscale { width: 8em }
+    #id_denominazione { width: 40em }
+    #id_url { width: 40em }
+
+    .field-ente_cf { width: 50% }
+    .field-ente_cf input { width: 8em; }
+
+    .field-anno input { width: 4em }
+
+    .field-onere_complessivo input,
+    .field-percentuale_partecipazione input,
+    .field-dichiarazione_inviata input
+    { width: 6em; }
+
+</style>
+{% endblock %}

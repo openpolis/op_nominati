@@ -1,0 +1,18 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<style type="text/css">
+
+    .field-istituzione_cf input,
+    .field-ente_cf input
+    { width: 100px; }
+
+    .field-compenso_anno input,
+    .field-compenso_carica input,
+    .field-altri_compensi input,
+    .field-indennita_risultato input
+    { width: 70px; }
+
+</style>
+{% endblock %}
