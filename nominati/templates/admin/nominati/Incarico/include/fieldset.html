@@ -6,7 +6,7 @@
 
     <table><tr>
         {% for line in fieldset %}
-            {% if line.fields.0 in 'persona|istituzione_cf|ente_cf|tipo_carica' %}
+            {% if line.fields.0 in 'persona|ente_nominante_cf|partecipata_cf|tipo_carica' %}
                 <div class="form-row{% if line.fields|length_is:'1' and line.errors %} errors{% endif %}{% for field in line %} {{ field.field.name }}{% endfor %}">
                     {% if line.fields|length_is:'1' %}{{ line.errors }}{% endif %}
                     {% for field in line %}

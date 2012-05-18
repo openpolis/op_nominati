@@ -12,10 +12,9 @@ class Comparto(models.Model):
         return self.nome
 
     class Meta:
-        db_table = u'comparto'
         verbose_name_plural = u'Comparti'
 
-class Ente(models.Model):
+class Partecipata(models.Model):
     MACRO_TIPOLOGIA = Choices(
         ('SOCIETA\'', 'Società'),
         ('CONSORZIO', 'Consorzio'),
@@ -25,25 +24,23 @@ class Ente(models.Model):
     codice_fiscale = models.CharField(max_length=11, primary_key=True)
     denominazione = models.CharField(max_length=255)
     macro_tipologia = models.CharField(max_length=32, choices=MACRO_TIPOLOGIA)
-    tipologia_ente = models.ForeignKey('TipologiaEnte', db_column='tipologia_ente')
+    tipologia_partecipata = models.ForeignKey('TipologiaPartecipata')
     url = models.URLField(blank=True, null=True)
 
     def __unicode__(self):
         return self.denominazione
 
     class Meta:
-        db_table = u'ente'
-        verbose_name_plural = u'Enti'
+        verbose_name_plural = u'Partecipate'
 
-class TipologiaEnte(models.Model):
+class TipologiaPartecipata(models.Model):
     denominazione = models.CharField(max_length=255)
 
     def __unicode__(self):
         return self.denominazione
 
     class Meta:
-        db_table = u'tipologia_ente'
-        verbose_name_plural = u'Tipologie enti'
+        verbose_name_plural = u'Tipologie partecipate'
 
 class Bilancio(models.Model):
     RESOCONTO = Choices(
@@ -55,16 +52,16 @@ class Bilancio(models.Model):
     anno = models.CharField(max_length=4)
     resoconto = models.IntegerField(choices=RESOCONTO)
     dettaglio = models.IntegerField(blank=True, null=False)
-    ente_cf = models.ForeignKey('Ente', db_column='ente_cf')
+    partecipata_cf = models.ForeignKey('Partecipata', db_column='partecipata_cf')
 
     class Meta:
         verbose_name_plural = u'Bilanci'
 
 class Incarico(models.Model):
     persona = models.ForeignKey('Persona')
-    istituzione_cf = models.ForeignKey('Istituzione', verbose_name=u'Istituzione', db_column='istituzione_cf')
+    ente_nominante_cf = models.ForeignKey('Ente', verbose_name=u'Ente', db_column='ente_cf')
     tipo_carica = models.ForeignKey('TipoCarica')
-    ente_cf = models.ForeignKey('Ente', db_column='ente_cf', verbose_name=u'Ente', blank=True, null=True)
+    partecipata_cf = models.ForeignKey('Partecipata', db_column='partecipata_cf', verbose_name=u'Partecipata', blank=True, null=True)
     compenso_anno = models.IntegerField(verbose_name=u'Comp. anno', null=True, blank=True)
     compenso_carica = models.IntegerField(verbose_name=u'Comp. carica', null=True, blank=True)
     altri_compensi = models.IntegerField(verbose_name=u'Altri comp.', null=True, blank=True)
@@ -72,40 +69,37 @@ class Incarico(models.Model):
     data_inizio = models.DateField(null=True, blank=True)
     data_fine = models.DateField(null=True, blank=True)
     class Meta:
-        db_table = u'incarico'
         verbose_name_plural = u'Incarichi'
 
-class Istituzione(models.Model):
+class Ente(models.Model):
     codice_fiscale = models.CharField(max_length=11, primary_key=True)
     denominazione = models.CharField(max_length=255)
     regione = models.ForeignKey('Regione')
     comparto = models.ForeignKey('Comparto')
-    ente_set = models.ManyToManyField('Ente', through='IstituzioneHasEnte')
+    partecipata_set = models.ManyToManyField('Partecipata', through='Partecipazione')
 
     @property
-    def enti_partecipati(self):
-        return self.ente_set.all()
+    def partecipate(self):
+        return self.partecipata_set.all()
 
     def __unicode__(self):
         return self.denominazione
 
     class Meta:
-        db_table = u'istituzione'
-        verbose_name_plural = u'Istituzioni'
+        verbose_name_plural = u'Enti'
 
-class IstituzioneHasEnte(models.Model):
+class Partecipazione(models.Model):
     SENT = Choices(
         ('SI', u'Sì'),
         ('NO', u'No'),
     )
-    istituzione_cf = models.ForeignKey('Istituzione', verbose_name=u'Istituzione', db_column='istituzione_cf')
     ente_cf = models.ForeignKey('Ente', verbose_name=u'Ente', db_column='ente_cf')
+    partecipata_cf = models.ForeignKey('Partecipata', verbose_name=u'Partecipata', db_column='partecipata_cf')
     anno = models.CharField(max_length=4) 
     onere_complessivo = models.CharField(max_length=255, blank=True)
     percentuale_partecipazione = models.CharField(max_length=255, blank=True)
     dichiarazione_inviata = models.CharField(max_length=2, choices=SENT, blank=True)
     class Meta:
-        db_table = u'istituzione_has_ente'
         verbose_name = u'Partecipazione'
         verbose_name_plural = u'Partecipazioni'
 
@@ -127,7 +121,6 @@ class Persona(models.Model):
         return self.nome + " " + self.cognome
 
     class Meta:
-        db_table = u'persona'
         verbose_name_plural = u'Persone'
         unique_together = ('nome', 'cognome', 'data_nascita', 'luogo_nascita')
 
@@ -138,7 +131,6 @@ class Regione(models.Model):
         return self.nome
 
     class Meta:
-        db_table = u'regione'
         verbose_name_plural = u'Regioni'
 
 class TipoCarica(models.Model):
@@ -149,7 +141,6 @@ class TipoCarica(models.Model):
         return self.denominazione
 
     class Meta:
-        db_table = u'tipo_carica'
         verbose_name = u'Tipo incarico'
         verbose_name_plural = u'Tipi incarico'
 
