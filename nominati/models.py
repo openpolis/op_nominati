@@ -68,7 +68,7 @@ class Incarico(models.Model):
     compenso_anno = models.IntegerField(verbose_name=u'Comp. anno', null=True, blank=True)
     compenso_carica = models.IntegerField(verbose_name=u'Comp. carica', null=True, blank=True)
     altri_compensi = models.IntegerField(verbose_name=u'Altri comp.', null=True, blank=True)
-    indennita_risultato = models.IntegerField(verbose_name=u'Ind. risult.', null=True, blank=True)
+    indennita_risultato = models.IntegerField(verbose_name=u'Ind. risultato', null=True, blank=True)
     data_inizio = models.DateField(null=True, blank=True)
     data_fine = models.DateField(null=True, blank=True)
     class Meta:
@@ -94,12 +94,16 @@ class Istituzione(models.Model):
         verbose_name_plural = u'Istituzioni'
 
 class IstituzioneHasEnte(models.Model):
+    SENT = Choices(
+        ('SI', u'Sì'),
+        ('NO', u'No'),
+    )
     istituzione_cf = models.ForeignKey('Istituzione', verbose_name=u'Istituzione', db_column='istituzione_cf')
     ente_cf = models.ForeignKey('Ente', verbose_name=u'Ente', db_column='ente_cf')
     anno = models.CharField(max_length=4) 
     onere_complessivo = models.CharField(max_length=255, blank=True)
     percentuale_partecipazione = models.CharField(max_length=255, blank=True)
-    dichiarazione_inviata = models.CharField(max_length=255, blank=True)
+    dichiarazione_inviata = models.CharField(max_length=2, choices=SENT, blank=True)
     class Meta:
         db_table = u'istituzione_has_ente'
         verbose_name = u'Partecipazione'
@@ -116,6 +120,7 @@ class Persona(models.Model):
     nome = models.CharField(max_length=64)
     cognome = models.CharField(max_length=64)
     data_nascita = models.DateField(null=True, blank=True)
+    luogo_nascita = models.CharField(max_length=64, null=True, blank=True)
     sesso = models.IntegerField(choices=SEX, blank=True)
 
     def __unicode__(self):
@@ -124,7 +129,7 @@ class Persona(models.Model):
     class Meta:
         db_table = u'persona'
         verbose_name_plural = u'Persone'
-        unique_together = ('nome', 'cognome', 'data_nascita')
+        unique_together = ('nome', 'cognome', 'data_nascita', 'luogo_nascita')
 
 class Regione(models.Model):
     nome = models.CharField(max_length=32)
@@ -139,8 +144,12 @@ class Regione(models.Model):
 class TipoCarica(models.Model):
     denominazione = models.CharField(max_length=64)
     descrizione = models.CharField(max_length=255, blank=True)
+
+    def __unicode__(self):
+        return self.denominazione
+
     class Meta:
         db_table = u'tipo_carica'
         verbose_name = u'Tipo incarico'
-        verbose_name_plural = u'Tipo incarichi'
+        verbose_name_plural = u'Tipi incarico'
 

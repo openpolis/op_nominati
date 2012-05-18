@@ -37,7 +37,8 @@ class VerboseManyToManyRawIdWidget(ManyToManyRawIdWidget):
         return u', '.join(str_values)
 
 
-class ImproveRawIdFieldsForm(admin.TabularInline):
+
+class ImproveRawIdFieldsForm(object):
     """
     Taken from http://djangosnippets.org/snippets/2217/
 
@@ -55,3 +56,13 @@ class ImproveRawIdFieldsForm(admin.TabularInline):
                 kwargs['widget'] = VerboseManyToManyRawIdWidget(db_field.rel, site)
             return db_field.formfield(**kwargs)
         return super(ImproveRawIdFieldsForm, self).formfield_for_dbfield(db_field, **kwargs)
+
+
+class ImproveRawFieldsStandardForm(ImproveRawIdFieldsForm, admin.ModelAdmin):
+    pass
+
+class ImproveRawIdFieldsTabularInlineForm(ImproveRawIdFieldsForm, admin.TabularInline):
+    pass
+
+class ImproveRawIdFieldsStackedInlineForm(ImproveRawIdFieldsForm, admin.StackedInline):
+    pass
