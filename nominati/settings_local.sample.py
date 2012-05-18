@@ -8,12 +8,10 @@ from nominati.settings import *
 
 DATABASES = {
     'default': {
-        'NAME': 'db_name',
-        'ENGINE': 'django.db.backends.mysql',
-        'USER': '',
-        'PASSWORD': ''
-    },
-    }
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(REPO_ROOT, 'sqlite.db'),
+        }
+}
 
 ADMINS = (
     ('Administrator Name', 'admin@email.xx'),

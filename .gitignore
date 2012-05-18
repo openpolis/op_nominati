@@ -1,5 +1,8 @@
 dump*
 .idea
-settings_local.py
-urls_local.py
+settings_*.py
+nominati/migrations/*
+sitestatic
+urls_*.py
 fabfile
+apache

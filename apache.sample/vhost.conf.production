@@ -1,0 +1,40 @@
+<VirtualHost *:80>
+    ServerName op_nominati
+    ServerAlias nom.domain.com
+
+    WSGIScriptReloading On
+
+    # removing, based on http://code.google.com/p/modwsgi/issues/detail?id=72
+    # WSGIReloadMechanism Process
+
+
+    WSGIDaemonProcess op_nominati-staging
+    WSGIProcessGroup op_nominati-staging
+    WSGIApplicationGroup op_nominati-staging
+
+    WSGIPassAuthorization On
+
+    WSGIScriptAlias / /home/nom.domain.com/private/python/apache/django.wsgi
+
+    DocumentRoot /home/nom.domain.com/public
+    <Directory /home/nom.domain.com/public>
+        Order allow,deny
+        Allow from all
+    </Directory>
+
+    Alias /media/ /home/nom.domain.com/public/media/
+    <Directory /home/nom.domain.com/public/media>
+       Order deny,allow
+       Allow from all
+    </Directory>
+
+    Alias /static/ /home/nom.domain.com/public/static/
+    <Directory /home/nom.domain.com/public/static>
+       Order deny,allow
+       Allow from all
+    </Directory>
+
+    LogLevel info
+    ErrorLog /home/nom.domain.com/log/error.log
+    CustomLog /home/nom.domain.com/log/access.log combined
+</VirtualHost>
