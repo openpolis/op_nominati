@@ -27,7 +27,7 @@ class EnteAdmin(admin.ModelAdmin):
 class PartecipataAdmin(admin.ModelAdmin):
     inlines = (BilancioInline, PartecipazioneInline, IncaricoInline )
     search_fields = ['denominazione', '^codice_fiscale']
-    list_filter = ('tipologia_partecipata',)
+    list_filter = ('tipologia_partecipata', 'competenza_partecipata')
 
 class PersonaAdmin(admin.ModelAdmin):
     inlines = (IncaricoInline,)
@@ -36,6 +36,7 @@ class PersonaAdmin(admin.ModelAdmin):
 admin.site.register(Comparto)
 admin.site.register(Regione)
 admin.site.register(TipologiaPartecipata)
+admin.site.register(CompetenzaPartecipata)
 admin.site.register(Ente, EnteAdmin)
 admin.site.register(Partecipata, PartecipataAdmin)
 admin.site.register(Persona, PersonaAdmin)

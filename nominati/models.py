@@ -25,6 +25,7 @@ class Partecipata(models.Model):
     denominazione = models.CharField(max_length=255)
     macro_tipologia = models.CharField(max_length=32, choices=MACRO_TIPOLOGIA)
     tipologia_partecipata = models.ForeignKey('TipologiaPartecipata')
+    competenza_partecipata = models.ForeignKey('CompetenzaPartecipata', null=True)
     url = models.URLField(blank=True, null=True)
 
     def __unicode__(self):
@@ -41,6 +42,16 @@ class TipologiaPartecipata(models.Model):
 
     class Meta:
         verbose_name_plural = u'Tipologie partecipate'
+
+
+class CompetenzaPartecipata(models.Model):
+    denominazione = models.CharField(max_length=255)
+
+    def __unicode__(self):
+        return self.denominazione
+
+    class Meta:
+        verbose_name_plural = u'Competenze partecipate'
 
 class Bilancio(models.Model):
     RESOCONTO = Choices(
