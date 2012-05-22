@@ -51,7 +51,7 @@ class Bilancio(models.Model):
 
     anno = models.CharField(max_length=4)
     resoconto = models.IntegerField(choices=RESOCONTO)
-    dettaglio = models.IntegerField(blank=True, null=False)
+    dettaglio = models.IntegerField(blank=True, null=True)
     partecipata_cf = models.ForeignKey('Partecipata', db_column='partecipata_cf')
 
     class Meta:
@@ -116,6 +116,7 @@ class Persona(models.Model):
     data_nascita = models.DateField(null=True, blank=True)
     luogo_nascita = models.CharField(max_length=64, null=True, blank=True)
     sesso = models.IntegerField(choices=SEX, blank=True)
+    openpolis_id = models.CharField(max_length=10, null=True, blank=True)
 
     def __unicode__(self):
         return self.nome + " " + self.cognome
