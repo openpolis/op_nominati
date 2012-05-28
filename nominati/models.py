@@ -128,6 +128,7 @@ class Persona(models.Model):
     luogo_nascita = models.CharField(max_length=64, null=True, blank=True)
     sesso = models.IntegerField(choices=SEX, blank=True)
     openpolis_id = models.CharField(max_length=10, null=True, blank=True)
+    openpolis_n_similars = models.IntegerField(default=0)
 
     def __unicode__(self):
         return self.nome + " " + self.cognome

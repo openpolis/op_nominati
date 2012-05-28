@@ -6,3 +6,4 @@ sitestatic
 urls_*.py
 fabfile
 apache
+log
