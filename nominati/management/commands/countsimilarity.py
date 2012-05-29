@@ -2,7 +2,7 @@
 from django.core.management.base import BaseCommand, CommandError, LabelCommand
 from django.conf import settings
 import urllib2
-from urllib import urlencode
+from django.utils.http import urlencode
 import json
 import logging
 
