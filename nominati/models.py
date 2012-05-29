@@ -133,6 +133,9 @@ class Persona(models.Model):
     def __unicode__(self):
         return self.nome + " " + self.cognome
 
+    def has_openpolis_id(self):
+        return True if self.openpolis_id or self.openpolis_id == '' else False;
+
     class Meta:
         verbose_name_plural = u'Persone'
         unique_together = ('nome', 'cognome', 'data_nascita', 'luogo_nascita')

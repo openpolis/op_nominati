@@ -1,4 +1,5 @@
 from django.contrib import admin
+from nominati.filters import HasOpenpolisIdListFilter
 from nominati.utils import ImproveRawIdFieldsTabularInlineForm, ImproveRawIdFieldsStackedInlineForm
 from nominati.models import *
 
@@ -32,6 +33,8 @@ class PartecipataAdmin(admin.ModelAdmin):
 class PersonaAdmin(admin.ModelAdmin):
     inlines = (IncaricoInline,)
     search_fields = ['^nome', '^cognome']
+    list_filter = ('openpolis_n_similars', HasOpenpolisIdListFilter)
+    list_display = ('__unicode__', 'openpolis_n_similars', 'has_openpolis_id', 'openpolis_id')
 
 admin.site.register(Comparto)
 admin.site.register(Regione)
