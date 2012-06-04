@@ -34,7 +34,18 @@ class PersonaAdmin(admin.ModelAdmin):
     inlines = (IncaricoInline,)
     search_fields = ['^nome', '^cognome']
     list_filter = ('openpolis_n_similars', HasOpenpolisIdListFilter)
-    list_display = ('__unicode__', 'openpolis_n_similars', 'has_openpolis_id', 'openpolis_id')
+    list_display = ('__unicode__', 'openpolis_n_similars', 'has_openpolis_id', 'openpolis_id', 'similars_link')
+    list_editable = ('openpolis_id',)
+
+    def similars_link(self, obj):
+        if obj.openpolis_n_similars:
+            url = "http://api.openpolis.it/op/1.0/similar_politicians/"
+            url += "?first_name=%s&last_name=%s" % (obj.nome, obj.cognome)
+            return '<a href="%s" target="_blank">controlla</a>' % url
+        else:
+            return ''
+    similars_link.allow_tags = True
+
 
 admin.site.register(Comparto)
 admin.site.register(Regione)
