@@ -7,3 +7,5 @@ urls_*.py
 fabfile
 apache
 log
+*.pyc
+sqlite.db

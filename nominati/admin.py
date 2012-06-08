@@ -38,12 +38,11 @@ class PersonaAdmin(admin.ModelAdmin):
     list_editable = ('openpolis_id',)
 
     def similars_link(self, obj):
-        if obj.openpolis_n_similars:
-            url = "http://api.openpolis.it/op/1.0/similar_politicians/"
-            url += "?first_name=%s&last_name=%s" % (obj.nome, obj.cognome)
-            return '<a href="%s" target="_blank">controlla</a>' % url
-        else:
+        if obj.openpolis_n_similars == None:
             return ''
+        url = "http://api.openpolis.it/op/1.0/similar_politicians/"
+        url += "?first_name=%s&last_name=%s" % (obj.nome, obj.cognome)
+        return '<a href="%s" onclick="return showAddAnotherPopup(this);">controlla</a>' % url
     similars_link.allow_tags = True
 
 
