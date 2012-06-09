@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+
+
+{% block content %}
+    <h2>Enti</h2>
+    <section id="enti-search" class="ui-widget">
+        <p style="width: 80%; margin-top: 2em">
+            <input id="ente" value="inserisci ente da ricercare" />
+        </p>
+    </section>
+
+{% endblock %}
+
+
+{% block js_footer %}
+    {{ block.super }}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-ui-1.8.17.custom.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#ente').focus(function(){
+                if ($(this)._cleared) return;
+                $(this).val('');
+                $(this)._cleared = true;
+            });
+
+
+            $( "#ente" ).autocomplete({
+                source: function( request, response ) {
+                    $.getJSON(
+                            "http://localhost:8010/enti.json",
+                            {'qterm': request.term },
+                            function( data ) {
+                                response( $.map( data, function( item ) {
+                                    return {
+                                        label: item.fields.denominazione,
+                                        circ: item.pk
+                                    }
+                                }));
+                            }
+                    );
+                },
+                minLength: 2,
+                select: function( event, ui ) {
+                    window.location.href += "enti/" + ui.item.circ;
+                },
+                open: function() {
+                    $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+                },
+                close: function() {
+                    $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+                }
+            });
+
+        });
+    </script>
+
+{% endblock %}
+
+{% block css_styles %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/ui-lightness/jquery-ui-1.8.17.custom.css" type="text/css" media="all" />
+    <style>
+        .ui-autocomplete-loading { background: white url('{{ STATIC_URL }}img/ui-anim_basic_16x16.gif') right center no-repeat; }
+        #ente { width: 20em; }
+        .ui-autocomplete {
+            max-height: 10em;
+            overflow-y: auto;
+            /* prevent horizontal scrollbar */
+            overflow-x: hidden;
+            /* add padding to account for vertical scrollbar */
+            padding-right: 20px;
+        }
+            /* IE 6 doesn't support max-height
+            * we use height instead, but this forces the menu to always be this tall
+            */
+        * html .ui-autocomplete {
+            height: 10em;
+        }
+
+        #main {
+            padding: 0;
+        }
+
+    </style>
+{% endblock %}

@@ -1,15 +1,16 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib import databrowse
-from django.views.generic.simple import redirect_to
 
 from nominati.models import *
+from nominati.views import EnteDetailView, EnteListView, EnteJSONListView
 
 admin.autodiscover()
-databrowse.site.register(Comparto, Regione, Ente, Partecipata, Persona, Incarico)
 
 urlpatterns = patterns('',
-    url(r'^$', redirect_to, {'url': '/databrowse/'}),
+    url(r'^$', EnteListView.as_view(), name="nominati_ente_list"),
+    url(r'^enti.json$', EnteJSONListView.as_view(), name="nominati_ente_listJSON"),
+    url(r'^enti/(?P<pk>\d+)$', EnteDetailView.as_view(), name="nominati_ente_detail"),
     url(r'^databrowse/(.*)', databrowse.site.root),
     url(r'^utils/check_similars/(?P<object_id>\d+)', 'nominati.views.check_similars_views'),
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

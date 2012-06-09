@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <title>{% block title %}I nominati di Openpolis{% endblock %}</title>
+    {% block css_styles %}
+        {% comment %}
+        <link href="{{ STATIC_URL }}css/styles.css" rel="stylesheet">
+        {% endcomment %}
+    {% endblock %}
+
+</head>
+
+<body>
+
+<div id="content">
+    {% block content %}{% endblock %}
+</div>
+
+{% block js_footer %}
+{% endblock %}
+</body>
+</html>

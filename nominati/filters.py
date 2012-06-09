@@ -28,9 +28,9 @@ class HasOpenpolisIdListFilter(SimpleListFilter):
         `self.value()`.
         """
         if self.value() == 'yes':
-            return queryset.filter(Q(openpolis_id__isnull=False) | Q(openpolis_id=''))
+            return queryset.filter(openpolis_id__isnull=False).exclude(openpolis_id='')
         if self.value() == 'no':
-            return queryset.filter(openpolis_id__isnull=True)
+            return queryset.filter(Q(openpolis_id__isnull=True) | Q(openpolis_id=''))
 
 
 
