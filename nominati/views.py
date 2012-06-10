@@ -1,3 +1,5 @@
+from django.db.models.aggregates import Count, Sum
+from django.db.models.query_utils import Q
 from django.http import HttpResponse, HttpResponseNotFound
 from django.core.serializers import serialize
 from django.conf import settings
@@ -62,6 +64,48 @@ class EnteDetailView(DetailView):
     model = Ente
     context_object_name = "ente"
     queryset = Ente.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super(EnteDetailView, self).get_context_data(**kwargs)
+        e = self.get_object()
+        context['partecipate_by_tipologia'] = e.partecipata_set.all().order_by('tipologia_partecipata')
+        context['partecipate_by_competenza'] = e.partecipata_set.all().order_by('competenza_partecipata')
+        context['partecipate_by_resoconto'] = e.partecipata_set.all().order_by('bilancio__resoconto').distinct()
+        incaricati = Persona.objects.filter(incarico__ente_nominante_cf=e.codice_fiscale)
+        context['n_amministratori'] = incaricati.count()
+        context['n_amministratori_genere'] = incaricati.values('sesso').annotate(n=Count('sesso'))
+
+        context['n_amministratori_under_25'] = incaricati.filter(data_nascita__gt='1987-01-01').count()
+        context['n_amministratori_under_25_genere'] = incaricati.filter(data_nascita__gt='1987-01-01').values('sesso').annotate(n=Count('sesso'))
+
+        context['n_amministratori_under_35'] = incaricati.filter(Q(data_nascita__gt='1977-01-01') & Q(data_nascita__lte='1987-01-01')).count()
+        context['n_amministratori_under_35_genere'] = incaricati.filter(Q(data_nascita__gt='1977-01-01') & Q(data_nascita__lte='1987-01-01')).\
+                                                                 values('sesso').annotate(n=Count('sesso'))
+
+        context['n_amministratori_under_45'] = incaricati.filter(Q(data_nascita__gt='1967-01-01') & Q(data_nascita__lte='1977-01-01')).count()
+        context['n_amministratori_under_45_genere'] = incaricati.filter(Q(data_nascita__gt='1967-01-01') & Q(data_nascita__lte='1977-01-01')).\
+                                                               values('sesso').annotate(n=Count('sesso'))
+        context['n_amministratori_under_55'] = incaricati.filter(Q(data_nascita__gt='1957-01-01') & Q(data_nascita__lte='1967-01-01')).count()
+        context['n_amministratori_under_55_genere'] = incaricati.filter(Q(data_nascita__gt='1957-01-01') & Q(data_nascita__lte='1967-01-01')).\
+                                                               values('sesso').annotate(n=Count('sesso'))
+        context['n_amministratori_under_65'] = incaricati.filter(Q(data_nascita__gt='1947-01-01') & Q(data_nascita__lte='1957-01-01')).count()
+        context['n_amministratori_under_65_genere'] = incaricati.filter(Q(data_nascita__gt='1947-01-01') & Q(data_nascita__lte='1957-01-01')).\
+                                                               values('sesso').annotate(n=Count('sesso'))
+        context['n_amministratori_over_65'] = incaricati.filter(data_nascita__lte='1947-01-01').count()
+        context['n_amministratori_over_65_genere'] = incaricati.filter(data_nascita__lte='1947-01-01').\
+                                                              values('sesso').annotate(n=Count('sesso'))
+        context['n_amministratori_unknown'] = incaricati.filter(data_nascita__isnull=True).count()
+        context['n_amministratori_unknown_genere'] = incaricati.filter(data_nascita__isnull=True).\
+                                                              values('sesso').annotate(n=Count('sesso'))
+
+        context['n_amministratori_tipocarica_genere'] = incaricati.values('incarico__tipo_carica__denominazione', 'sesso').annotate(n=Count('incarico__tipo_carica'))
+
+        context['amministratori_politici'] = incaricati.filter(openpolis_id__isnull=False).exclude(openpolis_id='').distinct()
+        context['amministratori_compensi'] = incaricati.annotate(s = Sum('incarico__compenso_totale')).order_by('-s')[0:10]
+        context['amministratori_incarichi'] = incaricati.annotate(n = Count('incarico')).order_by('-n')[0:10]
+
+        return context
+
 
 def check_similars_views(request, object_id):
     if not (request.user.is_authenticated() and request.user.is_staff):

@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+
+
+{% block content %}
+    <h2>Ente</h2>
+
+        <b>Denominazione: </b>:
+        {{ ente.denominazione }}<br/>
+
+        <b>Codice fiscale</b>:
+        {{ ente.codice_fiscale }}<br/>
+
+        <b>Numero partecipate</b>:
+        {{ ente.n_partecipate }}
+
+        <h3>Elenco partecipate per tipologia</h3>
+        <table>
+            {% for p in partecipate_by_tipologia %}
+                <tr>
+                    <td>{{ p.tipologia_partecipata }}</td>
+                    <td class="denominazione">{{ p.denominazione }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <h3>Elenco partecipate per competenze</h3>
+        <table>
+            {% for p in partecipate_by_competenza %}
+                <tr>
+                    <td>{{ p.competenza_partecipata }}</td>
+                    <td>{{ p.denominazione }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <h3>Elenco partecipate per resoconto di bilancio</h3>
+        <table>
+            {% for p in partecipate_by_resoconto %}
+                {% if p.ultimo_bilancio %}
+                    <tr>
+                        <td>{{ p.ultimo_bilancio.get_resoconto_display }} ({{ p.ultimo_bilancio.anno }})</td>
+                        <td>{{ p.denominazione }}</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </table>
+
+        <h3>Numero amministratori</h3>
+        <table>
+            <tr>
+                <td>Totale</td>
+                <td>{{ n_amministratori }}</td>
+            </tr>
+            {% for s in n_amministratori_genere %}
+                <tr>
+                    <td>
+                        {% ifequal s.sesso 1 %}
+                            uomini
+                        {%  else %}
+                            donne
+                        {% endifequal %}
+                    </td>
+                    <td>{{ s.n }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <h3>Amministratori per fascie d'età</h3>
+        <table>
+            <tr>
+                <td>Totale under 25</td>
+                <td>{{ n_amministratori_under_25 }}</td>
+            </tr>
+            {% for s in n_amministratori_under_25_genere %}
+                <tr>
+                    <td>
+                        {% ifequal s.sesso 1 %}
+                            uomini
+                        {%  else %}
+                            donne
+                        {% endifequal %}
+                    </td>
+                    <td>{{ s.n }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+
+        <table>
+            <tr>
+                <td>Totale tra 25 e 35</td>
+                <td>{{ n_amministratori_under_35 }}</td>
+            </tr>
+            {% for s in n_amministratori_under_35_genere %}
+                <tr>
+                    <td>
+                        {% ifequal s.sesso 1 %}
+                            uomini
+                        {%  else %}
+                            donne
+                        {% endifequal %}
+                    </td>
+                    <td>{{ s.n }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <table>
+            <tr>
+                <td>Totale tra 35 e 45</td>
+                <td>{{ n_amministratori_under_45 }}</td>
+            </tr>
+            {% for s in n_amministratori_under_45_genere %}
+                <tr>
+                    <td>
+                        {% ifequal s.sesso 1 %}
+                            uomini
+                        {%  else %}
+                            donne
+                        {% endifequal %}
+                    </td>
+                    <td>{{ s.n }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <table>
+            <tr>
+                <td>Totale tra 45 e 55</td>
+                <td>{{ n_amministratori_under_55 }}</td>
+            </tr>
+            {% for s in n_amministratori_under_55_genere %}
+                <tr>
+                    <td>
+                        {% ifequal s.sesso 1 %}
+                            uomini
+                        {%  else %}
+                            donne
+                        {% endifequal %}
+                    </td>
+                    <td>{{ s.n }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <table>
+            <tr>
+                <td>Totale tra 55 e 65</td>
+                <td>{{ n_amministratori_under_65 }}</td>
+            </tr>
+            {% for s in n_amministratori_under_65_genere %}
+                <tr>
+                    <td>
+                        {% ifequal s.sesso 1 %}
+                            uomini
+                        {%  else %}
+                            donne
+                        {% endifequal %}
+                    </td>
+                    <td>{{ s.n }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <table>
+            <tr>
+                <td>Totale over 65</td>
+                <td>{{ n_amministratori_over_65 }}</td>
+            </tr>
+            {% for s in n_amministratori_over_65_genere %}
+                <tr>
+                    <td>
+                        {% ifequal s.sesso 1 %}
+                            uomini
+                        {%  else %}
+                            donne
+                        {% endifequal %}
+                    </td>
+                    <td>{{ s.n }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <table>
+            <tr>
+                <td>Totale data sconosciuta</td>
+                <td>{{ n_amministratori_unknown }}</td>
+            </tr>
+            {% for s in n_amministratori_unknown_genere %}
+                <tr>
+                    <td>
+                        {% ifequal s.sesso 1 %}
+                            uomini
+                        {%  else %}
+                            donne
+                        {% endifequal %}
+                    </td>
+                    <td>{{ s.n }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <table>
+            {% for r in n_amministratori_tipocarica_genere %}
+                <tr>
+                    <td>
+                        {{ r.incarico__tipo_carica__denominazione }}
+                        {% ifequal r.sesso 1 %}
+                            (uomini)
+                        {%  else %}
+                            (donne)
+                        {% endifequal %}
+                    </td>
+                    <td>{{ r.n }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <h3>Amministratori politici</h3>
+        <table>
+            {% for a in amministratori_politici %}
+                <tr>
+                    <td>
+                        {{ a }}
+                    </td>
+                    <td>{{ a.openpolis_id }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+
+        <h3>I 10 amministratori con più incarichi</h3>
+        <table>
+            {% for a in amministratori_incarichi %}
+                <tr>
+                    <td>
+                        {{ a }}
+                    </td>
+                    <td>{{ a.n }} incarichi</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+
+        <h3>I 10 amministratori con compenso maggiore</h3>
+        <table>
+            {% for a in amministratori_compensi %}
+                <tr>
+                    <td>
+                        {{ a }}
+                    </td>
+                    <td>{{ a.s }} euro</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+
+    <a href="/">Torna alla ricerca</a>
+{% endblock %}
+
+
+{% block css_styles %}
+    {{ block.super }}
+    <style>
+        table { width: 40em; margin-top: 1em; border: 1px solid black}
+        th { background-color: #d3d3d3; }
+        td { border: 1px solid gray; padding: 0.25em }
+        td { width: 50%;}
+    </style>
+{% endblock %}

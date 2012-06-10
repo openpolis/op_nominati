@@ -28,6 +28,11 @@ class Partecipata(models.Model):
     competenza_partecipata = models.ForeignKey('CompetenzaPartecipata', null=True)
     url = models.URLField(blank=True, null=True)
 
+    @property
+    def ultimo_bilancio(self):
+        bilanci = self.bilancio_set.all().order_by('-anno')
+        return bilanci[0] if len(bilanci) else None
+
     def __unicode__(self):
         return self.denominazione
 
@@ -76,9 +81,28 @@ class Incarico(models.Model):
     compenso_anno = models.IntegerField(verbose_name=u'Comp. anno', null=True, blank=True)
     compenso_carica = models.IntegerField(verbose_name=u'Comp. carica', null=True, blank=True)
     altri_compensi = models.IntegerField(verbose_name=u'Altri comp.', null=True, blank=True)
+    compenso_totale = models.IntegerField(verbose_name=u'Comp. TOT', null=True, blank=True)
     indennita_risultato = models.IntegerField(verbose_name=u'Ind. risultato', null=True, blank=True)
     data_inizio = models.DateField(null=True, blank=True)
     data_fine = models.DateField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+
+        self.compenso_totale = 0
+        if self.compenso_anno:
+            self.compenso_totale += self.compenso_anno
+        if self.compenso_carica:
+            self.compenso_totale += self.compenso_carica
+        if self.altri_compensi:
+            self.compenso_totale += self.altri_compensi
+        if self.compenso_totale is 0:
+            self.compenso_totale = None
+
+        # Call parent's ``save`` function
+        super(Incarico, self).save(*args, **kwargs)
+
+
+
     class Meta:
         verbose_name_plural = u'Incarichi'
 
@@ -92,6 +116,10 @@ class Ente(models.Model):
     @property
     def partecipate(self):
         return self.partecipata_set.all()
+
+    @property
+    def n_partecipate(self):
+        return self.partecipata_set.count()
 
     def __unicode__(self):
         return self.denominazione
