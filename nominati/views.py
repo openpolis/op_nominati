@@ -7,13 +7,14 @@ from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.db.models.query import QuerySet
 from django.utils.functional import curry
+from django.template.defaultfilters import slugify
 
-from nominati.models import Ente
+from nominati.models import Incarico, Ente, Persona, TipoCarica
 import json
 from json.encoder import JSONEncoder
 import urllib2
+from datetime import datetime
 
-from nominati.models import Persona, Ente
 
 class DjangoJSONEncoder(JSONEncoder):
     def default(self, obj):
@@ -47,6 +48,11 @@ class JSONResponseMixin(object):
 class EnteListView(ListView):
     model = Ente
 
+    def get_context_data(self, **kwargs):
+        context = super(EnteListView, self).get_context_data(**kwargs)
+        context['SITE_URL'] = settings.SITE_URL
+        return context
+
     def get_queryset(self):
         if 'qterm' in self.request.GET:
             qterm = self.request.GET['qterm']
@@ -68,41 +74,97 @@ class EnteDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(EnteDetailView, self).get_context_data(**kwargs)
         e = self.get_object()
+        context['OP_URL'] = settings.OP_URL
         context['partecipate_by_tipologia'] = e.partecipata_set.all().order_by('tipologia_partecipata')
         context['partecipate_by_competenza'] = e.partecipata_set.all().order_by('competenza_partecipata')
         context['partecipate_by_resoconto'] = e.partecipata_set.all().order_by('bilancio__resoconto').distinct()
-        incaricati = Persona.objects.filter(incarico__ente_nominante_cf=e.codice_fiscale)
-        context['n_amministratori'] = incaricati.count()
-        context['n_amministratori_genere'] = incaricati.values('sesso').annotate(n=Count('sesso'))
+        now = datetime.now()
+        incarichi = Incarico.objects.filter(ente_nominante_cf=e.codice_fiscale).\
+                        filter(Q(data_inizio__lte=now) &
+                               (Q(data_fine__gte=now) | Q(data_fine__isnull=True)))
+        context['n_amministratori'] = incarichi.values('persona').distinct().count()
+        context['n_amministratori_uomini'] = incarichi.filter(persona__sesso=1).values('persona').distinct().count()
+        context['n_amministratori_donne'] = incarichi.filter(persona__sesso=0).values('persona').distinct().count()
 
-        context['n_amministratori_under_25'] = incaricati.filter(data_nascita__gt='1987-01-01').count()
-        context['n_amministratori_under_25_genere'] = incaricati.filter(data_nascita__gt='1987-01-01').values('sesso').annotate(n=Count('sesso'))
+        # age levels and filters
+        ages = {
+            'under_25': { 
+                'filters': {
+                    'persona__data_nascita__gt': '1987-01-01',
+                }
+            },
+            'under_35': {
+                'filters': {
+                    'persona__data_nascita__gt': '1977-01-01',
+                    'persona__data_nascita__lte': '1987-01-01',                    
+                }
+            },
+            'under_45': {
+                'filters': {
+                    'persona__data_nascita__gt': '1967-01-01',
+                    'persona__data_nascita__lte': '1977-01-01',                    
+                }
+            },
+            'under_55': {
+                'filters': {
+                    'persona__data_nascita__gt': '1957-01-01',
+                    'persona__data_nascita__lte': '1967-01-01',                    
+                }
+            },
+            'under_65': {
+                'filters': {
+                    'persona__data_nascita__gt': '1947-01-01',
+                    'persona__data_nascita__lte': '1957-01-01',                    
+                }
+            },
+            'over_65': {
+                'filters': {
+                    'persona__data_nascita__lte': '1947-01-01',
+                }
+            },            
+            'unknown': {
+                'filters': {
+                    'persona__data_nascita__isnull': True,
+                }
+            },
+        }
+        
+        # dynamically build extractions for age levels
+        for age, params in ages.items():            
+            context['n_amministratori_%s' % age] = incarichi.filter(**params['filters']).\
+                values('persona').distinct().count()
+            context['n_amministratori_%s_uomini' % age] = incarichi.\
+                filter(**params['filters']).filter(persona__sesso=Persona.MALE_SEX).\
+                values('persona').distinct().count()
+            context['n_amministratori_%s_donne' % age] = incarichi.\
+                filter(**params['filters']).filter(persona__sesso=Persona.FEMALE_SEX).\
+                values('persona').distinct().count()
 
-        context['n_amministratori_under_35'] = incaricati.filter(Q(data_nascita__gt='1977-01-01') & Q(data_nascita__lte='1987-01-01')).count()
-        context['n_amministratori_under_35_genere'] = incaricati.filter(Q(data_nascita__gt='1977-01-01') & Q(data_nascita__lte='1987-01-01')).\
-                                                                 values('sesso').annotate(n=Count('sesso'))
+        context['n_amministratori_tipo_carica'] = []
+        for c in TipoCarica.objects.all():
+            context['n_amministratori_tipo_carica'].append(
+                {
+                    'denominazione': c.denominazione, 
+                    'tot': incarichi.filter(tipo_carica=c).values('persona').distinct().count(),
+                    'uomini': incarichi.filter(tipo_carica=c).\
+                        filter(persona__sesso=Persona.MALE_SEX).\
+                        values('persona').distinct().count(),
+                    'donne': incarichi.filter(tipo_carica=c).\
+                        filter(persona__sesso=Persona.FEMALE_SEX).\
+                        values('persona').distinct().count()
+                }
+            )
 
-        context['n_amministratori_under_45'] = incaricati.filter(Q(data_nascita__gt='1967-01-01') & Q(data_nascita__lte='1977-01-01')).count()
-        context['n_amministratori_under_45_genere'] = incaricati.filter(Q(data_nascita__gt='1967-01-01') & Q(data_nascita__lte='1977-01-01')).\
-                                                               values('sesso').annotate(n=Count('sesso'))
-        context['n_amministratori_under_55'] = incaricati.filter(Q(data_nascita__gt='1957-01-01') & Q(data_nascita__lte='1967-01-01')).count()
-        context['n_amministratori_under_55_genere'] = incaricati.filter(Q(data_nascita__gt='1957-01-01') & Q(data_nascita__lte='1967-01-01')).\
-                                                               values('sesso').annotate(n=Count('sesso'))
-        context['n_amministratori_under_65'] = incaricati.filter(Q(data_nascita__gt='1947-01-01') & Q(data_nascita__lte='1957-01-01')).count()
-        context['n_amministratori_under_65_genere'] = incaricati.filter(Q(data_nascita__gt='1947-01-01') & Q(data_nascita__lte='1957-01-01')).\
-                                                               values('sesso').annotate(n=Count('sesso'))
-        context['n_amministratori_over_65'] = incaricati.filter(data_nascita__lte='1947-01-01').count()
-        context['n_amministratori_over_65_genere'] = incaricati.filter(data_nascita__lte='1947-01-01').\
-                                                              values('sesso').annotate(n=Count('sesso'))
-        context['n_amministratori_unknown'] = incaricati.filter(data_nascita__isnull=True).count()
-        context['n_amministratori_unknown_genere'] = incaricati.filter(data_nascita__isnull=True).\
-                                                              values('sesso').annotate(n=Count('sesso'))
+        context['amministratori_politici'] = incarichi.\
+            filter(persona__openpolis_id__isnull=False).exclude(persona__openpolis_id='').distinct()
 
-        context['n_amministratori_tipocarica_genere'] = incaricati.values('incarico__tipo_carica__denominazione', 'sesso').annotate(n=Count('incarico__tipo_carica'))
-
-        context['amministratori_politici'] = incaricati.filter(openpolis_id__isnull=False).exclude(openpolis_id='').distinct()
-        context['amministratori_compensi'] = incaricati.annotate(s = Sum('incarico__compenso_totale')).order_by('-s')[0:10]
-        context['amministratori_incarichi'] = incaricati.annotate(n = Count('incarico')).order_by('-n')[0:10]
+        context['amministratori_compensi'] = Persona.objects.filter(
+            incarico__ente_nominante_cf=e.codice_fiscale
+        ).annotate(s=Sum('incarico__compenso_totale')).order_by('-s')
+        
+        context['amministratori_incarichi'] = Persona.objects.filter(
+            incarico__ente_nominante_cf=e.codice_fiscale
+        ).annotate(n=Count('incarico')).order_by('-n')
 
         return context
 

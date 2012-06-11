@@ -29,7 +29,7 @@
             $( "#ente" ).autocomplete({
                 source: function( request, response ) {
                     $.getJSON(
-                            "http://nominati.openpolis.it/enti.json",
+                            "{{ SITE_URL }}/enti.json",
                             {'qterm': request.term },
                             function( data ) {
                                 response( $.map( data, function( item ) {

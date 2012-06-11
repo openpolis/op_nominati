@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from model_utils import Choices
+from model_utils.managers import PassThroughManager
+from nominati.managers import TimeFramedQuerySet
 
 from django.db import models
 
@@ -75,7 +77,7 @@ class Bilancio(models.Model):
 
 class Incarico(models.Model):
     persona = models.ForeignKey('Persona')
-    ente_nominante_cf = models.ForeignKey('Ente', verbose_name=u'Ente', db_column='ente_cf')
+    ente_nominante_cf = models.ForeignKey('Ente', verbose_name=u'Ente', db_column='ente_cf', blank=True, null=True)
     tipo_carica = models.ForeignKey('TipoCarica')
     partecipata_cf = models.ForeignKey('Partecipata', db_column='partecipata_cf', verbose_name=u'Partecipata', blank=True, null=True)
     compenso_anno = models.IntegerField(verbose_name=u'Comp. anno', null=True, blank=True)
@@ -85,6 +87,7 @@ class Incarico(models.Model):
     indennita_risultato = models.IntegerField(verbose_name=u'Ind. risultato', null=True, blank=True)
     data_inizio = models.DateField(null=True, blank=True)
     data_fine = models.DateField(null=True, blank=True)
+    objects = PassThroughManager.for_queryset_class(TimeFramedQuerySet)()
 
     def save(self, *args, **kwargs):
 

@@ -14,7 +14,32 @@
         <b>Numero partecipate</b>:
         {{ ente.n_partecipate }}
 
+        <a name="toc"></a>
+        <ul>
+          <li>
+            Partecipate
+            <ul>
+              <li><a href="#part_tipologia">Elenco per tipologia</a></li>
+              <li><a href="#part_competenze">Elenco per competenze</a></li>
+              <li><a href="#part_resoconto">Elenco per resoconto di bilancio</a></li>
+            </ul>
+          </li>
+          <li>
+            Amministratori
+            <ul>
+              <li><a href="#amm_tot">Numero totale</a></li>
+              <li><a href="#amm_eta">Per fascie d'et&agrave;</a></li>
+              <li><a href="#amm_tipo">Per tipo d'incarico</a></li>
+              <li><a href="#amm_politici">Elenco dei politici (OP)</a></li>
+              <li><a href="#amm_incarichi">Elenco ordinato per numero di incarichi</a></li>
+              <li><a href="#amm_compenso">Elenco ordinato per compenso</a></li>              
+            </ul>
+          </li>
+        </ul>
+        
+        <a name="part_tipologia"></a>
         <h3>Elenco partecipate per tipologia</h3>
+        <a href="#toc">Torna su</a>
         <table>
             {% for p in partecipate_by_tipologia %}
                 <tr>
@@ -24,7 +49,9 @@
             {% endfor %}
         </table>
 
+        <a name="part_competenze"></a>
         <h3>Elenco partecipate per competenze</h3>
+        <a href="#toc">Torna su</a>
         <table>
             {% for p in partecipate_by_competenza %}
                 <tr>
@@ -34,7 +61,9 @@
             {% endfor %}
         </table>
 
+        <a name="part_resoconto"></a>
         <h3>Elenco partecipate per resoconto di bilancio</h3>
+        <a href="#toc">Torna su</a>
         <table>
             {% for p in partecipate_by_resoconto %}
                 {% if p.ultimo_bilancio %}
@@ -46,191 +75,91 @@
             {% endfor %}
         </table>
 
-        <h3>Numero amministratori</h3>
+        <h2>Amministratori</h2>
+
+        <a name="amm_tot"></a>
+        <h3>Numero totale</h3>
+        <a href="#toc">Torna su</a>
         <table>
             <tr>
                 <td>Totale</td>
-                <td>{{ n_amministratori }}</td>
+                <td>{{ n_amministratori }} ({{ n_amministratori_uomini }} uomini e {{ n_amministratori_donne }} donne)</td>
             </tr>
-            {% for s in n_amministratori_genere %}
-                <tr>
-                    <td>
-                        {% ifequal s.sesso 1 %}
-                            uomini
-                        {%  else %}
-                            donne
-                        {% endifequal %}
-                    </td>
-                    <td>{{ s.n }}</td>
-                </tr>
-            {% endfor %}
         </table>
 
-        <h3>Amministratori per fascie d'età</h3>
+        <a name="amm_eta"></a>
+        <h4>Per fascie d'età</h4>
+        <a href="#toc">Torna su</a>
         <table>
             <tr>
-                <td>Totale under 25</td>
-                <td>{{ n_amministratori_under_25 }}</td>
+                <td>under 25</td>
+                <td>{{ n_amministratori_under_25 }}
+                  ({{ n_amministratori_under_25_uomini }} uomini e {{ n_amministratori_under_25_donne }} donne)</td>
             </tr>
-            {% for s in n_amministratori_under_25_genere %}
-                <tr>
-                    <td>
-                        {% ifequal s.sesso 1 %}
-                            uomini
-                        {%  else %}
-                            donne
-                        {% endifequal %}
-                    </td>
-                    <td>{{ s.n }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-
-
-        <table>
             <tr>
-                <td>Totale tra 25 e 35</td>
-                <td>{{ n_amministratori_under_35 }}</td>
+                <td>tra 25 e 35</td>
+                <td>{{ n_amministratori_under_35 }}
+                  ({{ n_amministratori_under_35_uomini }} uomini e {{ n_amministratori_under_35_donne }} donne)</td>
             </tr>
-            {% for s in n_amministratori_under_35_genere %}
-                <tr>
-                    <td>
-                        {% ifequal s.sesso 1 %}
-                            uomini
-                        {%  else %}
-                            donne
-                        {% endifequal %}
-                    </td>
-                    <td>{{ s.n }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-
-        <table>
             <tr>
-                <td>Totale tra 35 e 45</td>
-                <td>{{ n_amministratori_under_45 }}</td>
+                <td>tra 35 e 45</td>
+                <td>{{ n_amministratori_under_45 }}
+                  ({{ n_amministratori_under_45_uomini }} uomini e {{ n_amministratori_under_45_donne }} donne)</td>
             </tr>
-            {% for s in n_amministratori_under_45_genere %}
-                <tr>
-                    <td>
-                        {% ifequal s.sesso 1 %}
-                            uomini
-                        {%  else %}
-                            donne
-                        {% endifequal %}
-                    </td>
-                    <td>{{ s.n }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-
-        <table>
             <tr>
-                <td>Totale tra 45 e 55</td>
-                <td>{{ n_amministratori_under_55 }}</td>
+                <td>tra 45 e 55</td>
+                <td>{{ n_amministratori_under_55 }}
+                  ({{ n_amministratori_under_55_uomini }} uomini e {{ n_amministratori_under_55_donne }} donne)</td>
             </tr>
-            {% for s in n_amministratori_under_55_genere %}
-                <tr>
-                    <td>
-                        {% ifequal s.sesso 1 %}
-                            uomini
-                        {%  else %}
-                            donne
-                        {% endifequal %}
-                    </td>
-                    <td>{{ s.n }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-
-        <table>
             <tr>
-                <td>Totale tra 55 e 65</td>
-                <td>{{ n_amministratori_under_65 }}</td>
+                <td>tra 55 e 65</td>
+                <td>{{ n_amministratori_under_65 }}
+                  ({{ n_amministratori_under_65_uomini }} uomini e {{ n_amministratori_under_65_donne }} donne)</td>
             </tr>
-            {% for s in n_amministratori_under_65_genere %}
-                <tr>
-                    <td>
-                        {% ifequal s.sesso 1 %}
-                            uomini
-                        {%  else %}
-                            donne
-                        {% endifequal %}
-                    </td>
-                    <td>{{ s.n }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-
-        <table>
             <tr>
-                <td>Totale over 65</td>
-                <td>{{ n_amministratori_over_65 }}</td>
+                <td>over 65</td>
+                <td>{{ n_amministratori_over_65 }}
+                  ({{ n_amministratori_over_65_uomini }} uomini e {{ n_amministratori_over_65_donne }} donne)</td>
             </tr>
-            {% for s in n_amministratori_over_65_genere %}
-                <tr>
-                    <td>
-                        {% ifequal s.sesso 1 %}
-                            uomini
-                        {%  else %}
-                            donne
-                        {% endifequal %}
-                    </td>
-                    <td>{{ s.n }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-
-        <table>
             <tr>
-                <td>Totale data sconosciuta</td>
-                <td>{{ n_amministratori_unknown }}</td>
+                <td>data sconosciuta</td>
+                <td>{{ n_amministratori_unknown }}
+                  ({{ n_amministratori_unknown_uomini }} uomini e {{ n_amministratori_unknown_donne }} donne)</td>
             </tr>
-            {% for s in n_amministratori_unknown_genere %}
-                <tr>
-                    <td>
-                        {% ifequal s.sesso 1 %}
-                            uomini
-                        {%  else %}
-                            donne
-                        {% endifequal %}
-                    </td>
-                    <td>{{ s.n }}</td>
-                </tr>
-            {% endfor %}
         </table>
 
+        <a name="amm_tipo"></a>
+        <h4>Per tipo di incarico</h4>
+        <a href="#toc">Torna su</a>
         <table>
-            {% for r in n_amministratori_tipocarica_genere %}
+            {% for c in n_amministratori_tipo_carica %}
+              {% if c.tot %}
                 <tr>
-                    <td>
-                        {{ r.incarico__tipo_carica__denominazione }}
-                        {% ifequal r.sesso 1 %}
-                            (uomini)
-                        {%  else %}
-                            (donne)
-                        {% endifequal %}
-                    </td>
-                    <td>{{ r.n }}</td>
-                </tr>
+                  <td>{{ c.denominazione }}</td>
+                  <td>{{ c.tot }} ({{c.uomini}} uomini, {{c.donne}} donne)</td>
+                </tr>                
+              {% endif %}
             {% endfor %}
         </table>
 
-        <h3>Amministratori politici</h3>
+        <a name="amm_politici"></a>
+        <h3>Amministratori che sono politici</h3>
+        <a href="#toc">Torna su</a>
         <table>
             {% for a in amministratori_politici %}
                 <tr>
                     <td>
-                        {{ a }}
+                        {{ a.persona }}
                     </td>
-                    <td>{{ a.openpolis_id }}</td>
+                    <td><a href="{{ OP_URL }}/politico/{{ a.persona.openpolis_id }}" target="_blank">vai</a></td>
                 </tr>
             {% endfor %}
         </table>
 
 
-        <h3>I 10 amministratori con più incarichi</h3>
+        <a name="amm_incarichi"></a>
+        <h3>Amministratori per n incarichi</h3>
+        <a href="#toc">Torna su</a>
         <table>
             {% for a in amministratori_incarichi %}
                 <tr>
@@ -243,19 +172,27 @@
         </table>
 
 
-        <h3>I 10 amministratori con compenso maggiore</h3>
+        <a name="amm_compenso"></a>
+        <h3>Amministratori per compenso</h3>
+        <a href="#toc">Torna su</a>
         <table>
             {% for a in amministratori_compensi %}
                 <tr>
                     <td>
                         {{ a }}
                     </td>
-                    <td>{{ a.s }} euro</td>
+                    <td>
+                      {% if a.s %}
+                        {{ a.s }} euro
+                      {% else %}
+                        -
+                      {% endif %}
+                    </td>
                 </tr>
             {% endfor %}
         </table>
 
-
+    <br/>
     <a href="/">Torna alla ricerca</a>
 {% endblock %}
 
