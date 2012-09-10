@@ -44,7 +44,9 @@
             {% for p in partecipate_by_tipologia %}
                 <tr>
                     <td>{{ p.tipologia_partecipata }}</td>
-                    <td class="denominazione">{{ p.denominazione }}</td>
+                    <td class="denominazione"><a href="/admin/nominati/partecipata/{{ p.codice_fiscale }}" target="_blank">{{ p.denominazione }}</a></td>
+                    <td>{{ p.numero_incarichi_attivi }}</td>
+                    <td>{{ p.totale_compensi_incarichi_attivi }}</td>
                 </tr>
             {% endfor %}
         </table>
@@ -164,9 +166,11 @@
             {% for a in amministratori_incarichi %}
                 <tr>
                     <td>
-                        {{ a }}
+                        <a href="{{ SITE_URL }}/admin/nominati/persona/{{a.persona}}" target="_blank">
+                          {{ a.persona__nome }} {{ a.persona__cognome }}
+                        </a>
                     </td>
-                    <td>{{ a.n }} incarichi</td>
+                    <td>{{ a.n }}</td>
                 </tr>
             {% endfor %}
         </table>
@@ -179,13 +183,19 @@
             {% for a in amministratori_compensi %}
                 <tr>
                     <td>
-                        {{ a }}
+                      <a href="{{ SITE_URL }}/admin/nominati/persona/{{a.persona}}" target="_blank">
+                        {{ a.persona__nome }} {{ a.persona__cognome }}
+                      </a>
                     </td>
                     <td>
                       {% if a.s %}
                         {{ a.s }} euro
                       {% else %}
-                        -
+                        {% ifequal a.s 0 %}
+                          0
+                        {% else %}
+                          -
+                        {% endifequal %}
                       {% endif %}
                     </td>
                 </tr>

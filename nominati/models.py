@@ -6,6 +6,9 @@ from model_utils.managers import PassThroughManager
 from nominati.managers import TimeFramedQuerySet
 
 from django.db import models
+from django.db.models import Sum
+from django.db.models.query_utils import Q
+from datetime import datetime
 
 class Comparto(models.Model):
     nome = models.CharField(max_length=255)
@@ -35,6 +38,20 @@ class Partecipata(models.Model):
         bilanci = self.bilancio_set.all().order_by('-anno')
         return bilanci[0] if len(bilanci) else None
 
+    @property
+    def numero_incarichi_attivi(self):
+        now = datetime.now()
+        return self.incarico_set.filter(
+            Q(data_inizio__lte=now) & 
+            (Q(data_fine__gte=now) | Q(data_fine__isnull=True))).count()
+        
+    @property
+    def totale_compensi_incarichi_attivi(self):
+        now = datetime.now()
+        return self.incarico_set.filter(
+            Q(data_inizio__lte=now) & 
+            (Q(data_fine__gte=now) | Q(data_fine__isnull=True))).aggregate(s=Sum('compenso_totale'))['s']
+            
     def __unicode__(self):
         return self.denominazione
 
@@ -96,9 +113,13 @@ class Incarico(models.Model):
             self.compenso_totale += self.compenso_anno
         if self.compenso_carica:
             self.compenso_totale += self.compenso_carica
+        if self.indennita_risultato:
+            self.compenso_totale += self.indennita_risultato
         if self.altri_compensi:
             self.compenso_totale += self.altri_compensi
-        if self.compenso_totale is 0:
+        if self.indennita_risultato is None and self.compenso_anno is None \
+           and self.compenso_carica is None and self.compenso_carica is None \
+          and self.altri_compensi is None:
             self.compenso_totale = None
 
         # Call parent's ``save`` function

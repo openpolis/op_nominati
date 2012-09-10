@@ -3,6 +3,7 @@
 ## Django settings specific for your development environment should be placed below
 
 from nominati.settings import *
+from django.contrib.sites.models import Site
 
 
 
@@ -54,4 +55,13 @@ DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': False,
     }
 
-EMAIL_PORT = 1025
+EMAIL_PORT = 25
+
+OP_API_BASE_URL = 'http://api.openpolis.it/op/1.0'
+OP_API_SIMILARITY_BASE_URL = '%s/similar_politicians' % OP_API_BASE_URL
+OP_API_USER = 'xxxx'
+OP_API_PASS = 'yyyy'
+
+SITE_URL = "http://%s" % Site.objects.get(pk=SITE_ID).domain
+OP_URL = 'http://politici.openpolis.it'
+

@@ -74,6 +74,7 @@ class EnteDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(EnteDetailView, self).get_context_data(**kwargs)
         e = self.get_object()
+        context['SITE_URL'] = settings.SITE_URL
         context['OP_URL'] = settings.OP_URL
         context['partecipate_by_tipologia'] = e.partecipata_set.all().order_by('tipologia_partecipata')
         context['partecipate_by_competenza'] = e.partecipata_set.all().order_by('competenza_partecipata')
@@ -158,13 +159,15 @@ class EnteDetailView(DetailView):
         context['amministratori_politici'] = incarichi.\
             filter(persona__openpolis_id__isnull=False).exclude(persona__openpolis_id='').distinct()
 
-        context['amministratori_compensi'] = Persona.objects.filter(
-            incarico__ente_nominante_cf=e.codice_fiscale
-        ).annotate(s=Sum('incarico__compenso_totale')).order_by('-s')
+        context['amministratori_compensi'] = incarichi.\
+                filter(ente_nominante_cf=e.codice_fiscale).\
+                values('persona', 'persona__nome', 'persona__cognome').\
+                annotate(s=Sum('compenso_totale')).order_by('-s')
         
-        context['amministratori_incarichi'] = Persona.objects.filter(
-            incarico__ente_nominante_cf=e.codice_fiscale
-        ).annotate(n=Count('incarico')).order_by('-n')
+        context['amministratori_incarichi'] = incarichi.\
+            filter(ente_nominante_cf=e.codice_fiscale).\
+            values('persona', 'persona__nome', 'persona__cognome').\
+            annotate(n=Count('persona')).order_by('-n')
 
         return context
 
