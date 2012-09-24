@@ -9,3 +9,4 @@ apache
 log
 *.pyc
 sqlite.db
+prepare_venv.sh
