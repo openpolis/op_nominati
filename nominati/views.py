@@ -8,12 +8,22 @@ from django.views.generic.list import ListView
 from django.db.models.query import QuerySet
 from django.utils.functional import curry
 from django.template.defaultfilters import slugify
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 from nominati.models import Incarico, Ente, Persona, TipoCarica
 import json
 from json.encoder import JSONEncoder
 import urllib2
 from datetime import datetime
+
+class AccessControlView(object):
+    """
+    Define access control for the view
+    """
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(AccessControlView, self).dispatch(*args, **kwargs)
 
 
 class DjangoJSONEncoder(JSONEncoder):
@@ -45,7 +55,8 @@ class JSONResponseMixin(object):
         # -- can be serialized as JSON.
         return dumps(context)
 
-class EnteListView(ListView):
+
+class EnteListView(AccessControlView, ListView):
     model = Ente
 
     def get_context_data(self, **kwargs):
@@ -66,7 +77,7 @@ class EnteJSONListView(JSONResponseMixin, EnteListView):
         return dumps(context['ente_list'])
 
 
-class EnteDetailView(DetailView):
+class EnteDetailView(AccessControlView, DetailView):
     model = Ente
     context_object_name = "ente"
     queryset = Ente.objects.all()

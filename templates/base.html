@@ -16,6 +16,14 @@
 
 <body>
 
+{% if user.is_authenticated %}
+    <div >
+        <a href="{% url nominati_logout %}" id="">Logout</a>
+
+    </div>
+
+{% endif %}
+
 <div id="content">
     {% block content %}{% endblock %}
 </div>
