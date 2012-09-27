@@ -3,12 +3,15 @@ from django.contrib import admin
 from django.contrib import databrowse
 
 from nominati.models import *
-from nominati.views import EnteDetailView, EnteListView, EnteJSONListView
+from nominati.views import EnteDetailView, EnteListView, EnteJSONListView, RegioneListView, RegioneDetailView
 
 admin.autodiscover()
 
+
 urlpatterns = patterns('',
     url(r'^$', EnteListView.as_view(), name="nominati_ente_list"),
+    url(r'^regioni/$', RegioneListView.as_view(), name="nominati_regione_list"),
+    url(r'^regioni/(?P<pk>\d+)$', RegioneDetailView.as_view(), name="nominati_regione_detail"),
     url(r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}, name='login'),
     url(r'^logout/$', 'django.contrib.auth.views.logout', {'next_page' : '/'}, name='nominati_logout'),
     url(r'^enti.json$', EnteJSONListView.as_view(), name="nominati_ente_listJSON"),

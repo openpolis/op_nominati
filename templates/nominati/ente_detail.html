@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
 
+{% block title %}
+   Ente - {{ ente.denominazione }}
+{% endblock %}
+
+
 
 {% block content %}
     <h2>Ente</h2>
@@ -32,7 +37,8 @@
               <li><a href="#amm_tipo">Per tipo d'incarico</a></li>
               <li><a href="#amm_politici">Elenco dei politici (OP)</a></li>
               <li><a href="#amm_incarichi">Elenco ordinato per numero di incarichi</a></li>
-              <li><a href="#amm_compenso">Elenco ordinato per compenso</a></li>              
+              <li><a href="#amm_compenso">Elenco ordinato per compenso</a></li>
+              <li><a href="#lista_nominati">Lista nominati</a></li>
             </ul>
           </li>
         </ul>
@@ -202,17 +208,109 @@
             {% endfor %}
         </table>
 
-    <br/>
-    <a href="/">Torna alla ricerca</a>
+
+        <a name="lista_nominati"></a>
+        <h3>Lista nominati</h3>
+        <a href="#toc">Torna su</a>
+        <table id="lista_nominati">
+        {% if lista_nominati %}
+
+            <tr class="ln_header">
+                <td class="">
+                  Nome
+                 </a>
+                </td>
+                <td class="ln_incarichi">
+                    <table class="lista_nominati_inc">
+                        <tr>
+                        <td class="ln_carica">
+                            Carica
+                        </td>
+                         <td class="ln_partecipata">
+                          Partecipata
+                        </td>
+                         <td class="ln_ente">
+                          Ente
+                        </td>
+                        <td class="ln_compenso">
+                        Compenso<BR>totale
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+
+
+        {% endif %}
+        {% for cognome,dati in lista_nominati%}
+                <tr>
+                    <td class="ln_nome">
+                      <a href="{{ SITE_URL }}/admin/nominati/persona/{{dati.persona.pk}}" target="_blank">
+                       {{ cognome }}&nbsp;{{ dati.persona.nome }}
+                     </a>
+                    </td>
+                    <td class="ln_incarichi">
+                        <table class="lista_nominati_inc">
+                        {% for i in dati.incarichi %}
+                            <tr>
+                            <td class="ln_carica">
+
+                              {{ i.tipo_carica }}
+                            </td>
+                             <td class="ln_partecipata">
+                              {{ i.partecipata_cf }}
+                            </td>
+                             <td class="ln_ente">
+                              {{ i.ente_nominante_cf }}
+                            </td>
+                            <td class="ln_compenso">
+                            {% if i.compenso_totale%}
+                              {{ i.compenso_totale }}
+                              {% else %}
+                              -
+                            {% endif %}
+                            {% endfor %}
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+
+
+
+
 {% endblock %}
 
 
 {% block css_styles %}
     {{ block.super }}
     <style>
-        table { width: 40em; margin-top: 1em; border: 1px solid black}
+        body {
+            font-size: 16px;
+
+            }
+        table {
+            width: 40em;
+            margin-top: 1em;
+            border: 1px solid black;
+            border-collapse: separate;
+            border-spacing: 0px;
+            }
         th { background-color: #d3d3d3; }
-        td { border: 1px solid gray; padding: 0.25em }
-        td { width: 50%;}
+        td { border: 1px solid gray;}
+
+
+        /*STE*/
+
+        table#lista_nominati {width: 60em;border:1px solid black; padding:0; margin:0;}
+        tr.ln_header {background-color: #ddd;font-weight: bold; font-size: 14px; }
+        table#lista_nominati .ln_nome {width:10em;padding-top:5px;vertical-align: top;}
+        td.ln_incarichi{border:0;height:50px;margin:0;padding:0;}
+        table.lista_nominati_inc { width:100%;height:50px;margin:0; border:0;}
+        .ln_carica      {width:20%;}
+        .ln_partecipata {width:40%;}
+        .ln_ente        {width:30%;}
+        .ln_compenso    {width:10%;}
+
     </style>
 {% endblock %}

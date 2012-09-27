@@ -182,6 +182,10 @@ class Persona(models.Model):
     openpolis_id = models.CharField(max_length=10, null=True, blank=True)
     openpolis_n_similars = models.IntegerField(default=0)
 
+    @property
+    def incarichi(self):
+        return self.incarico_set.all()
+
     def __unicode__(self):
         return self.nome + " " + self.cognome
 

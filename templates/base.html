@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <title>{% block title %}I nominati di Openpolis{% endblock %}</title>
+    <title>Open Nominati -{% block title %}{% endblock %}</title>
     {% block css_styles %}
     <style>
     body { font-family: arial, sans-serif; font-size: 1em; }
     h1, h2, h3, h4, h5 { margin-bottom: 0.2em }
+
     </style>
         {% comment %}
         <link href="{{ STATIC_URL }}css/styles.css" rel="stylesheet">
         {% endcomment %}
     {% endblock %}
+
+
 
 </head>
 
@@ -18,16 +21,33 @@
 
 {% if user.is_authenticated %}
     <div >
-        <a href="{% url nominati_logout %}" id="">Logout</a>
-
+        <a href="{% url nominati_logout %}" id="">Logout</a><BR>
     </div>
-
 {% endif %}
+
+{% block header %}
+    <div>
+    <a href="/">Torna alla ricerca</a>
+    </div>
+{% endblock %}
+
+
+
+<div id="sidebar">
+    {% block sidebar %}
+    {%  endblock %}
+</div>
+
 
 <div id="content">
     {% block content %}{% endblock %}
 </div>
 
+{% block footer %}
+    {% if user.is_authenticated %}
+        <a href="/">Torna alla ricerca</a>
+    {% endif %}
+{% endblock %}
 {% block js_footer %}
 {% endblock %}
 </body>
