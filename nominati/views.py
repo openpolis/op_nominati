@@ -369,6 +369,9 @@ class EnteDetailView(AccessControlView, DetailView):
         return context
 
 
+def home(self):
+    return render_to_response('nominati/home.html')
+
 
 def check_similars_views(request, object_id):
     if not (request.user.is_authenticated() and request.user.is_staff):

@@ -19,25 +19,20 @@
 
 <body>
 
-
 {% block sidebar %}
 {%  endblock %}
 
 
-
-{% block header %}
-    <div id="header">
+<div id="header">
+    {% block header %}
         {% if user.is_authenticated %}
             <div >
                 <a href="{% url nominati_logout %}" id="">Logout</a><BR>
+                <a href="{% url nominati_home %}">Torna alla home</a>
             </div>
         {% endif %}
-        <a href="/">Torna alla ricerca</a>
+    {% endblock %}
     </div>
-{% endblock %}
-
-
-
 
 
 <div id="content">
@@ -47,7 +42,7 @@
 <div id="footer">
     {% block footer %}
         {% if user.is_authenticated %}
-            <a href="/">Torna alla ricerca</a>
+            <a href="{% url nominati_home %}">Torna alla home</a>
         {% endif %}
     {% endblock %}
 </div>

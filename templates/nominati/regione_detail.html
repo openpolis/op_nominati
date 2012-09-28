@@ -5,14 +5,9 @@
 {% endblock %}
 
 {% block header %}
-    <div id="header">
-        {% if user.is_authenticated %}
-            <div >
-                <a href="{% url nominati_logout %}" id="">Logout</a><BR>
-            </div>
-        {% endif %}
-        <a href="/regioni">Torna alla lista delle regioni</a>
-    </div>
+    {{ block.super }}<BR>
+    <a href="{% url nominati_regione_list %}">Torna alla lista delle regioni</a>
+
 {% endblock %}
 
 {% block sidebar %}
@@ -38,7 +33,7 @@
             Amministratori
             <ul>
                 <li><a href="/regioni/{{ regione.pk }}?tipo=amm_tot#n">Numero totale</a></li>
-                <li><a href="/regioni/{{ regione.pk }}?tipo=amm_tot#eta">Per fascie d'et&agrave;</a></li>
+                <li><a href="/regioni/{{ regione.pk }}?tipo=amm_tot#eta">Per fasce d'et&agrave;</a></li>
                 <li><a href="/regioni/{{ regione.pk }}?tipo=amm_tot#incarico">Per tipo d'incarico</a></li>
                 <li><a href="/regioni/{{ regione.pk }}?tipo=amm_politici">Elenco dei politici (OP)</a></li>
                 <li><a href="/regioni/{{ regione.pk }}?tipo=amm_incarichi">Elenco ordinato per numero di incarichi</a></li>
@@ -61,8 +56,9 @@
 
 
 {% block footer %}
+    {{ block.super }}<BR>
     {% if user.is_authenticated %}
-        <a href="/regioni">Torna alla lista delle regioni</a>
+        <a href="{% url nominati_regione_list %}">Torna alla lista delle regioni</a>
     {% endif %}
 {% endblock %}
 

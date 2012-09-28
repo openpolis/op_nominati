@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block header %}
+    {% if user.is_authenticated %}
+        <div >
+            <a href="{% url nominati_logout %}" id="">Logout</a><BR>
+        </div>
+    {% endif %}
+
+{% endblock %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+
+{% block content %}
+    <h2>Home</h2>
+    <ul>
+        <li><a href="{% url nominati_ente_list  %}">Ricerca per Ente</a></li>
+        <li><a href="{% url nominati_regione_list %}">Lista Regioni</a></li>
+        <li><a href="">Italia intera</a></li>
+
+    </ul>
+
+{% endblock %}
