@@ -1,0 +1,30 @@
+{% extends "nominati/regione_detail.html" %}
+
+{% block content%}
+
+    {% block table %}
+        <h3>Amministratori che sono politici</h3>
+        <table>
+
+            <tr>
+                <th>
+                    Nome
+                </th>
+                <th>
+                    Link
+                </th>
+
+            </tr>
+
+            {% for a in table %}
+                <tr>
+                    <td>  {{ a.persona }}</td>
+                    <td >
+                        <a href="{{ OP_URL }}/politico/{{ a.persona.openpolis_id }}" target="_blank">vai</a>
+                    </td>
+
+                </tr>
+            {% endfor %}
+        </table>
+    {% endblock %}
+{% endblock %}

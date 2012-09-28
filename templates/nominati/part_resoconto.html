@@ -1,0 +1,28 @@
+{% extends "nominati/regione_detail.html" %}
+
+{% block content%}
+    {% block table %}
+        <h3>Elenco partecipate per resoconto di bilancio</h3>
+        <table>
+
+            <tr>
+                <th>
+                    Resoconto (Anno)
+                </th>
+                <th>
+                    Denominazione
+                </th>
+
+            </tr>
+
+            {% for p in table%}
+                {% if p.ultimo_bilancio %}
+                    <tr>
+                        <td>{{ p.ultimo_bilancio.get_resoconto_display }} ({{ p.ultimo_bilancio.anno }})</td>
+                        <td>{{ p.denominazione }}</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </table>
+    {% endblock %}
+{% endblock %}

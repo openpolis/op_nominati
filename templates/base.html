@@ -19,36 +19,41 @@
 
 <body>
 
-{% if user.is_authenticated %}
-    <div >
-        <a href="{% url nominati_logout %}" id="">Logout</a><BR>
-    </div>
-{% endif %}
+
+{% block sidebar %}
+{%  endblock %}
+
+
 
 {% block header %}
-    <div>
-    <a href="/">Torna alla ricerca</a>
+    <div id="header">
+        {% if user.is_authenticated %}
+            <div >
+                <a href="{% url nominati_logout %}" id="">Logout</a><BR>
+            </div>
+        {% endif %}
+        <a href="/">Torna alla ricerca</a>
     </div>
 {% endblock %}
 
 
 
-<div id="sidebar">
-    {% block sidebar %}
-    {%  endblock %}
-</div>
 
 
 <div id="content">
     {% block content %}{% endblock %}
 </div>
 
-{% block footer %}
-    {% if user.is_authenticated %}
-        <a href="/">Torna alla ricerca</a>
-    {% endif %}
-{% endblock %}
+<div id="footer">
+    {% block footer %}
+        {% if user.is_authenticated %}
+            <a href="/">Torna alla ricerca</a>
+        {% endif %}
+    {% endblock %}
+</div>
+
 {% block js_footer %}
 {% endblock %}
+
 </body>
 </html>

@@ -1,0 +1,28 @@
+{% extends "nominati/regione_detail.html" %}
+
+{% block content%}
+
+    {% block table %}
+        <h3>Elenco partecipate per competenze</h3>
+        <table>
+
+            <tr>
+                <th>
+                    Competenza
+                </th>
+                <th>
+                    Denominazione
+                </th>
+
+            </tr>
+
+            {% for p in table %}
+                <tr>
+                    <td>{{ p.competenza_partecipata|default_if_none:"-" }}</td>
+                    <td class="denominazione"><a href="/admin/nominati/partecipata/{{ p.codice_fiscale }}" target="_blank">{{ p.denominazione }}</a></td>
+
+                </tr>
+            {% endfor %}
+        </table>
+    {% endblock %}
+{% endblock %}

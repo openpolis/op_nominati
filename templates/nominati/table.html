@@ -1,0 +1,25 @@
+{% extends "nominati/regione_detail.html" %}
+
+{% block content%}
+
+    {% block table %}
+        <h3>{% block table_title %}{% endblock %}</h3>
+        <table>
+            {% for item in table_header%}
+                <tr>
+                    <td>
+                        {{ item }}
+                    </td>
+                </tr>
+            {% endfor %}
+            {% for item in table %}
+                <tr>
+                {% for field in item.get_fields %}
+                    <td>{{ field }}</td>
+                {% endfor %}
+
+                </tr>
+            {% endfor %}
+        </table>
+    {% endblock %}
+{% endblock %}

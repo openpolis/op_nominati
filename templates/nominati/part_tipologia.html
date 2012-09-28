@@ -1,0 +1,34 @@
+{% extends "nominati/regione_detail.html" %}
+
+{% block content%}
+
+    {% block table %}
+        <h3>Elenco partecipate per tipologia</h3>
+        <table>
+
+            <tr>
+                <th>
+                    Tipologia
+                </th>
+                <th>
+                    Denominazione
+                </th>
+                <th>
+                    Incarichi attivi
+                </th>
+                <th>
+                    Tot Compensi incarichi
+                </th>
+            </tr>
+
+            {% for p in table %}
+                <tr>
+                    <td>{{ p.tipologia_partecipata }}</td>
+                    <td class="denominazione"><a href="/admin/nominati/partecipata/{{ p.codice_fiscale }}" target="_blank">{{ p.denominazione }}</a></td>
+                    <td>{{ p.numero_incarichi_attivi|default:"-" }}</td>
+                    <td>{{ p.totale_compensi_incarichi_attivi|default_if_none:"-"}}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endblock %}
+{% endblock %}

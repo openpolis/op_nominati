@@ -51,7 +51,7 @@ class Partecipata(models.Model):
         return self.incarico_set.filter(
             Q(data_inizio__lte=now) & 
             (Q(data_fine__gte=now) | Q(data_fine__isnull=True))).aggregate(s=Sum('compenso_totale'))['s']
-            
+
     def __unicode__(self):
         return self.denominazione
 
@@ -162,6 +162,8 @@ class Partecipazione(models.Model):
     onere_complessivo = models.CharField(max_length=255, blank=True)
     percentuale_partecipazione = models.CharField(max_length=255, blank=True)
     dichiarazione_inviata = models.CharField(max_length=2, choices=SENT, blank=True)
+
+
     class Meta:
         verbose_name = u'Partecipazione'
         verbose_name_plural = u'Partecipazioni'
@@ -198,6 +200,10 @@ class Persona(models.Model):
 
 class Regione(models.Model):
     nome = models.CharField(max_length=32)
+
+    @property
+    def n_partecipate(self):
+        return Partecipata.objects.filter(ente__regione = self).count()
 
     def __unicode__(self):
         return self.nome

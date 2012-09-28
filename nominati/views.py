@@ -1,6 +1,7 @@
 from django.db.models.aggregates import Count, Sum
 from django.db.models.query_utils import Q
 from django.http import HttpResponse, HttpResponseNotFound
+from django.shortcuts import render_to_response
 from django.core.serializers import serialize
 from django.conf import settings
 from django.views.generic.detail import DetailView
@@ -11,11 +12,11 @@ from django.template.defaultfilters import slugify
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-from nominati.models import Incarico, Ente, Persona, TipoCarica
+from nominati.models import Incarico, Ente, Persona, TipoCarica, Regione, Partecipata
 import json
 from json.encoder import JSONEncoder
 import urllib2
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class AccessControlView(object):
     """
@@ -72,6 +73,177 @@ class EnteListView(AccessControlView, ListView):
             return Ente.objects.all()[0:50]
 
 
+class RegioneListView(AccessControlView, ListView):
+    model = Regione
+
+
+
+class RegioneDetailView(AccessControlView, DetailView):
+    model = Regione
+    context_object_name = "regione"
+
+    def get_context_data(self, **kwargs ):
+        context = super(RegioneDetailView, self).get_context_data(**kwargs)
+        r = self.get_object()
+        tipologia = self.request.GET.get('tipo',)
+
+        context['SITE_URL'] = settings.SITE_URL
+        context['OP_URL'] = settings.OP_URL
+
+        now = datetime.now()
+        context['table'] = []
+        partecipate = Partecipata.objects.filter(ente__regione = r).distinct()
+        if tipologia == '':
+            context['n_partecipate'] = Partecipata.objects.filter(ente__regione = r).distinct().count()
+        else:
+            if tipologia =='part_tipologia':
+                context['table'] = partecipate.order_by('tipologia_partecipata')
+                self.template_name = "nominati/part_tipologia.html"
+            if tipologia == 'part_competenze':
+                context['table'] = partecipate.order_by('competenza_partecipata')
+                self.template_name = "nominati/part_competenze.html"
+            if tipologia == 'part_resoconto':
+                context['table'] = partecipate.order_by('bilancio__resoconto').distinct()
+                self.template_name = "nominati/part_resoconto.html"
+            if tipologia == 'amm_tot':
+                incarichi = Incarico.objects.filter(ente_nominante_cf__regione = r).\
+                filter(Q(data_inizio__lte=now) &
+                       (Q(data_fine__gte=now) | Q(data_fine__isnull=True)))
+                context['n_amministratori'] = incarichi.values('persona').distinct().count()
+                context['n_amministratori_uomini'] = incarichi.filter(persona__sesso=1).values('persona').distinct().count()
+                context['n_amministratori_donne'] = incarichi.filter(persona__sesso=0).values('persona').distinct().count()
+
+                # age levels and filters
+                ages = [
+                            {
+                                'age':'under 25',
+                                'filters': {
+                                    'persona__data_nascita__gt': now-timedelta(days=9131.05),
+                                    }
+                            },
+                            {
+                                'age':'tra 25 e 35',
+                                'filters': {
+                                    'persona__data_nascita__gt': now-timedelta(days=12783.5),
+                                    'persona__data_nascita__lte': now-timedelta(days=9131.05),
+                                    }
+                            },
+                            {
+                                'age':'tra 35 e 45',
+                                'filters': {
+                                    'persona__data_nascita__gt': now-timedelta(days=16435.9),
+                                    'persona__data_nascita__lte': now-timedelta(days=12783.5),
+                                    }
+                            },
+                            {
+                                'age':'tra 45 e 55',
+                                'filters': {
+                                    'persona__data_nascita__gt': now-timedelta(days=20088.3),
+                                    'persona__data_nascita__lte': now-timedelta(days=16435.9),
+                                    }
+                            },
+                            {
+                                'age':'tra 55 e 65',
+                                'filters': {
+                                    'persona__data_nascita__gt': now-timedelta(days=23740.7),
+                                    'persona__data_nascita__lte': now-timedelta(days=20088.3),
+                                    }
+                            },
+                            {
+                                'age':'over 65',
+                                'filters': {
+                                    'persona__data_nascita__lte': now-timedelta(days=23740.7),
+                                    }
+                            },
+                            {
+                                'age':'unknown',
+                                'filters': {
+                                    'persona__data_nascita__isnull': True,
+                                    }
+                            },
+                    ]
+
+
+                for item in ages:
+                    context['table'].append({
+                        'age': item['age'],
+                        'all': incarichi.filter(**item['filters']).values('persona').distinct().count(),
+                        'male': incarichi.\
+                            filter(**item['filters']).filter(persona__sesso=Persona.MALE_SEX).\
+                            values('persona').distinct().count(),
+                        'female': incarichi.\
+                            filter(**item['filters']).filter(persona__sesso=Persona.FEMALE_SEX).\
+                            values('persona').distinct().count(),
+                    })
+                context['n_amministratori_tipo_carica'] = []
+                for c in TipoCarica.objects.all():
+                    context['n_amministratori_tipo_carica'].append(
+                        {
+                            'denominazione': c.denominazione,
+                            'tot': incarichi.filter(tipo_carica=c).values('persona').distinct().count(),
+                            'uomini': incarichi.filter(tipo_carica=c).\
+                            filter(persona__sesso=Persona.MALE_SEX).\
+                            values('persona').distinct().count(),
+                            'donne': incarichi.filter(tipo_carica=c).\
+                            filter(persona__sesso=Persona.FEMALE_SEX).\
+                            values('persona').distinct().count()
+                        }
+                )
+
+                self.template_name = 'nominati/amm_tot.html'
+
+            if tipologia == 'amm_politici':
+                incarichi = Incarico.objects.filter(ente_nominante_cf__regione = r).\
+                    filter(Q(data_inizio__lte=now) &
+                           (Q(data_fine__gte=now) | Q(data_fine__isnull=True)))
+                context['table'] = incarichi.\
+                    filter(persona__openpolis_id__isnull=False).exclude(persona__openpolis_id='').distinct()
+
+                self.template_name = 'nominati/amm_politici.html'
+
+            if tipologia == 'amm_incarichi':
+                incarichi = Incarico.objects.filter(ente_nominante_cf__regione = r).\
+                filter(Q(data_inizio__lte=now) &
+                       (Q(data_fine__gte=now) | Q(data_fine__isnull=True)))
+                context['table'] = incarichi.\
+                    values('persona', 'persona__nome', 'persona__cognome').\
+                    annotate(n=Count('persona')).order_by('-n')
+
+                self.template_name = 'nominati/amm_incarichi.html'
+
+            if tipologia == 'amm_compenso':
+                incarichi = Incarico.objects.filter(ente_nominante_cf__regione = r).\
+                filter(Q(data_inizio__lte=now) &
+                       (Q(data_fine__gte=now) | Q(data_fine__isnull=True)))
+                context['table'] = incarichi.\
+                    values('persona', 'persona__nome', 'persona__cognome').\
+                    annotate(s=Sum('compenso_totale')).order_by('-s')
+
+                self.template_name = 'nominati/amm_compenso.html'
+
+            if tipologia == 'lista_nominati':
+                incarichi = Incarico.objects.filter(ente_nominante_cf__regione = r).\
+                    filter(Q(data_inizio__lte=now) &
+                           (Q(data_fine__gte=now) | Q(data_fine__isnull=True)))
+                persone_id = incarichi.values('persona','persona__cognome').distinct().order_by('persona__cognome')
+
+                context['table']=\
+                [
+                (
+                    p['persona__cognome'],
+                    {
+                        'persona': Persona.objects.get(pk=p['persona']),
+                        'incarichi':Incarico.objects.filter(persona = p['persona'], ente_nominante_cf__regione = r)
+                    }
+                    )
+                for p in persone_id
+                ]
+
+                self.template_name = 'nominati/lista_nominati.html'
+
+        return context
+
+
 class EnteJSONListView(JSONResponseMixin, EnteListView):
     def convert_context_to_json(self, context):
         return dumps(context['ente_list'])
@@ -102,36 +274,36 @@ class EnteDetailView(AccessControlView, DetailView):
         ages = {
             'under_25': { 
                 'filters': {
-                    'persona__data_nascita__gt': '1987-01-01',
+                    'persona__data_nascita__gt': now-timedelta(days=9131.05),
                 }
             },
             'under_35': {
                 'filters': {
-                    'persona__data_nascita__gt': '1977-01-01',
-                    'persona__data_nascita__lte': '1987-01-01',                    
+                    'persona__data_nascita__lt': now-timedelta(days=12783.5),
+                    'persona__data_nascita__gt': now-timedelta(days=9131.05),
                 }
             },
             'under_45': {
                 'filters': {
-                    'persona__data_nascita__gt': '1967-01-01',
-                    'persona__data_nascita__lte': '1977-01-01',                    
+                    'persona__data_nascita__lt': now-timedelta(days=16435.9),
+                    'persona__data_nascita__gt': now-timedelta(days=12783.5),
                 }
             },
             'under_55': {
                 'filters': {
-                    'persona__data_nascita__gt': '1957-01-01',
-                    'persona__data_nascita__lte': '1967-01-01',                    
+                    'persona__data_nascita__gt': now-timedelta(days=20088.3),
+                    'persona__data_nascita__lte': now-timedelta(days=16435.9),
                 }
             },
             'under_65': {
                 'filters': {
-                    'persona__data_nascita__gt': '1947-01-01',
-                    'persona__data_nascita__lte': '1957-01-01',                    
+                    'persona__data_nascita__gt': now-timedelta(days=23740.7),
+                    'persona__data_nascita__lte': now-timedelta(days=20088.3),
                 }
             },
             'over_65': {
                 'filters': {
-                    'persona__data_nascita__lte': '1947-01-01',
+                    'persona__data_nascita__lte': now-timedelta(days=23740.7),
                 }
             },            
             'unknown': {
@@ -180,7 +352,22 @@ class EnteDetailView(AccessControlView, DetailView):
             values('persona', 'persona__nome', 'persona__cognome').\
             annotate(n=Count('persona')).order_by('-n')
 
+        persone_id = incarichi.values('persona','persona__cognome').distinct().order_by('persona__cognome')
+
+        context['lista_nominati']=\
+        [
+        (
+            p['persona__cognome'],
+            {
+                'persona': Persona.objects.get(pk=p['persona']),
+                'incarichi':Incarico.objects.filter(persona = p['persona'], ente_nominante_cf=e.codice_fiscale)
+            }
+            )
+        for p in persone_id
+        ]
+
         return context
+
 
 
 def check_similars_views(request, object_id):

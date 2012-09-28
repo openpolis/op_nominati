@@ -1,0 +1,68 @@
+{% extends "nominati/regione_detail.html" %}
+
+{% block content%}
+
+    {% block table %}
+        <h3>Lista Nominati</h3>
+        <table id="lista_nominati">
+
+            <tr class="ln_header">
+                <td class="">
+                    Nome
+                    </a>
+                </td>
+                <td class="ln_incarichi">
+                    <table class="lista_nominati_inc">
+                        <tr>
+                            <td class="ln_carica">
+                                Carica
+                            </td>
+                            <td class="ln_partecipata">
+                                Partecipata
+                            </td>
+                            <td class="ln_ente">
+                                Ente
+                            </td>
+                            <td class="ln_compenso">
+                                Compenso<BR>totale
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+
+            {% for cognome,dati in table%}
+                <tr>
+                    <td class="ln_nome">
+                        <a href="{{ SITE_URL }}/admin/nominati/persona/{{dati.persona.pk}}" target="_blank">
+                            {{ cognome }}&nbsp;{{ dati.persona.nome }}
+                        </a>
+                    </td>
+                    <td class="ln_incarichi">
+                        <table class="lista_nominati_inc">
+                            {% for i in dati.incarichi %}
+                                <tr>
+                                <td class="ln_carica">
+
+                                    {{ i.tipo_carica }}
+                                </td>
+                                <td class="ln_partecipata">
+                                    {{ i.partecipata_cf }}
+                                </td>
+                                <td class="ln_ente">
+                                    {{ i.ente_nominante_cf }}
+                                </td>
+                                <td class="ln_compenso">
+                                {% if i.compenso_totale%}
+                                    {{ i.compenso_totale }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            {% endfor %}
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endblock %}
+{% endblock %}

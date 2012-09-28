@@ -1,0 +1,41 @@
+{% extends "nominati/regione_detail.html" %}
+
+{% block content%}
+    {% block table %}
+        <a name="n"></a>
+        <h3>Numero totale</h3>
+        <table>
+            <tr>
+                <td>Totale</td>
+                <td>{{ n_amministratori }} ({{ n_amministratori_uomini }} uomini e {{ n_amministratori_donne }} donne)</td>
+            </tr>
+        </table>
+
+        <a name="eta"></a>
+        <h4>Per fasce d'età</h4>
+        <table>
+            {% for p in table%}
+
+                <tr>
+                    <td> {{ p.age }}</td>
+                    <td>{{ p.all }}
+                        ({{ p.male }} uomini e {{ p.female }} donne)</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <a name="incarico"></a>
+        <h4>Per tipo di incarico</h4>
+        <table>
+            {% for c in n_amministratori_tipo_carica %}
+                {% if c.tot %}
+                    <tr>
+                        <td>{{ c.denominazione }}</td>
+                        <td>{{ c.tot }} ({{c.uomini}} uomini, {{c.donne}} donne)</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </table>
+    {% endblock %}
+{% endblock %}
+

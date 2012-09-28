@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}
+   Regione {{ regione }}
+{% endblock %}
+
+{% block header %}
+    <div id="header">
+        {% if user.is_authenticated %}
+            <div >
+                <a href="{% url nominati_logout %}" id="">Logout</a><BR>
+            </div>
+        {% endif %}
+        <a href="/regioni">Torna alla lista delle regioni</a>
+    </div>
+{% endblock %}
+
+{% block sidebar %}
+    <div id="sidebar">
+        <h2>Regione</h2>
+
+        <b>Denominazione</b><BR>
+        {{ regione }}<br/>
+
+     <!--   <b>Codice fiscale</b>:
+        {{ ente.codice_fiscale }}<br/> -->
+
+        <b>Numero partecipate</b><BR>
+        {{ regione.n_partecipate }}
+
+        <div id="toc">
+            Partecipate
+            <ul>
+                <li><a href="/regioni/{{ regione.pk }}?tipo=part_tipologia">Elenco per tipologia</a></li>
+                <li><a href="/regioni/{{ regione.pk }}?tipo=part_competenze">Elenco per competenze</a></li>
+                <li><a href="/regioni/{{ regione.pk }}?tipo=part_resoconto">Elenco per resoconto di bilancio</a></li>
+            </ul>
+            Amministratori
+            <ul>
+                <li><a href="/regioni/{{ regione.pk }}?tipo=amm_tot#n">Numero totale</a></li>
+                <li><a href="/regioni/{{ regione.pk }}?tipo=amm_tot#eta">Per fascie d'et&agrave;</a></li>
+                <li><a href="/regioni/{{ regione.pk }}?tipo=amm_tot#incarico">Per tipo d'incarico</a></li>
+                <li><a href="/regioni/{{ regione.pk }}?tipo=amm_politici">Elenco dei politici (OP)</a></li>
+                <li><a href="/regioni/{{ regione.pk }}?tipo=amm_incarichi">Elenco ordinato per numero di incarichi</a></li>
+                <li><a href="/regioni/{{ regione.pk }}?tipo=amm_compenso">Elenco ordinato per compenso</a></li>
+                <li><a href="/regioni/{{ regione.pk }}?tipo=lista_nominati">Lista nominati</a></li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <a name="top"></a>
+    {% block table %}
+
+    <h3>{% block table_title %}Scegli dal menu di navigazione la voce che ti interessa{% endblock %}</h3>
+
+   {% endblock %}
+    <a href="#top">Torna su</a>
+{% endblock %}
+
+
+{% block footer %}
+    {% if user.is_authenticated %}
+        <a href="/regioni">Torna alla lista delle regioni</a>
+    {% endif %}
+{% endblock %}
+
+{% block css_styles %}
+    {{ block.super }}
+    <style>
+        body {
+            font-size: 16px;
+
+        }
+        table {
+            width: 40em;
+            margin-top: 1em;
+            border: 1px solid black;
+            border-collapse: separate;
+            border-spacing: 0px;
+        }
+        th { background-color: #d3d3d3; border:1px solid gray; }
+        td { border: 1px solid gray;}
+
+
+        /*STE*/
+        #header {position: relative;width: 50em; left:15em; padding-left:1em; }
+        #footer {position: relative;width: 50em; left:15em; padding-left:1em; }
+        #content{position: relative; width: 50em; left:15em; padding-left:1em;}
+        #sidebar {
+            position: fixed;
+            height:100%;
+            top:0px;
+            left:0;
+            width: 15em;
+            border-right: 2px solid #999;
+            background-color: #eeeeee;
+            padding-left:5px;
+
+        }
+
+        #sidebar ul{
+            list-style: disc;
+            padding-left:20px;
+        }
+        #toc{margin-top:30px;}
+
+
+        table#lista_nominati {width: 60em;border:1px solid black; padding:0; margin:0;}
+        tr.ln_header {background-color: #ddd;font-weight: bold; font-size: 14px; }
+        table#lista_nominati .ln_nome {width:10em;padding-top:5px;vertical-align: top;}
+        td.ln_incarichi{border:0;height:50px;margin:0;padding:0;}
+        table.lista_nominati_inc { width:100%;height:50px;margin:0; border:0;}
+        .ln_carica      {width:20%;}
+        .ln_partecipata {width:40%;}
+        .ln_ente        {width:30%;}
+        .ln_compenso    {width:10%;}
+
+    </style>
+{% endblock %}

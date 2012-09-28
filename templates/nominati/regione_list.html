@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+    Nominati - Lista Regioni
+{% endblock %}
+
+
+{% block content %}
+    <h2>Regioni</h2>
+   <ul>
+   {% for regione in  object_list%}
+   <li><a href="{% url nominati_regione_detail regione.pk %}">{{ regione.nome }}</a></li>
+   {% endfor %}
+  </ul>
+
+{% endblock %}
+
+{% block css_styles %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/ui-lightness/jquery-ui-1.8.17.custom.css" type="text/css" media="all" />
+    <style>
+        .ui-autocomplete-loading { background: white url('{{ STATIC_URL }}img/ui-anim_basic_16x16.gif') right center no-repeat; }
+        #ente { width: 20em; }
+        .ui-autocomplete {
+            max-height: 10em;
+            overflow-y: auto;
+            /* prevent horizontal scrollbar */
+            overflow-x: hidden;
+            /* add padding to account for vertical scrollbar */
+            padding-right: 20px;
+        }
+            /* IE 6 doesn't support max-height
+            * we use height instead, but this forces the menu to always be this tall
+            */
+        * html .ui-autocomplete {
+            height: 10em;
+        }
+
+        #main {
+            padding: 0;
+        }
+
+    </style>
+{% endblock %}
+
+{% block footer %} {% endblock %}
+{% block header %} {% endblock %}

@@ -1,0 +1,30 @@
+{% extends "nominati/regione_detail.html" %}
+
+{% block content%}
+
+    {% block table %}
+        <h3>Amministratori per n incarichi</h3>
+        <table>
+
+            <tr>
+                <th>
+                    Nome
+                </th>
+                <th>
+                    N.incarichi
+                </th>
+
+            </tr>
+
+            {% for a in table %}
+                <tr>
+                <td>
+                    <a href="{{ SITE_URL }}/admin/nominati/persona/{{a.persona}}" target="_blank">
+                        {{ a.persona__nome }} {{ a.persona__cognome }}
+                    </a>
+                </td>
+                <td>{{ a.n }}</td>
+            {% endfor %}
+        </table>
+    {% endblock %}
+{% endblock %}

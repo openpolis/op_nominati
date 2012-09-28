@@ -1,0 +1,41 @@
+{% extends "nominati/regione_detail.html" %}
+
+{% block content%}
+
+    {% block table %}
+        <h3>Amministratori per compenso</h3>
+        <table>
+
+            <tr>
+                <th>
+                    Nome
+                </th>
+                <th>
+                    Compenso
+                </th>
+
+            </tr>
+
+            {% for a in table %}
+                <tr>
+                    <td>
+                        <a href="{{ SITE_URL }}/admin/nominati/persona/{{a.persona}}" target="_blank">
+                            {{ a.persona__nome }} {{ a.persona__cognome }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if a.s %}
+                            {{ a.s }} euro
+                        {% else %}
+                            {% ifequal a.s 0 %}
+                                0
+                            {% else %}
+                                -
+                            {% endifequal %}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endblock %}
+{% endblock %}
