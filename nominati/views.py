@@ -93,9 +93,8 @@ class RegioneDetailView(AccessControlView, DetailView):
         now = datetime.now()
         context['table'] = []
         partecipate = Partecipata.objects.filter(ente__regione = r).distinct()
-        if tipologia == '':
-            context['n_partecipate'] = Partecipata.objects.filter(ente__regione = r).distinct().count()
-        else:
+        context['n_partecipate'] = Partecipata.objects.filter(ente__regione = r).distinct().count()
+        if tipologia != '':
             if tipologia =='part_tipologia':
                 context['table'] = partecipate.order_by('tipologia_partecipata')
                 self.template_name = "nominati/part_tipologia.html"
