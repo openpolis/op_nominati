@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib import databrowse
 
 from nominati.models import *
-from nominati.views import EnteDetailView, EnteListView, EnteJSONListView, RegioneListView, RegioneDetailView
+from nominati.views import EnteDetailView, EnteListView, EnteJSONListView, RegioneListView, RegioneDetailView, NazioneView
 
 admin.autodiscover()
 
@@ -13,6 +13,8 @@ urlpatterns = patterns('',
     url(r'^regioni/$', RegioneListView.as_view(), name="nominati_regione_list"),
     url(r'^regioni/(?P<pk>\d+)$', RegioneDetailView.as_view(), name="nominati_regione_detail"),
     url(r'^regioni/(?P<pk>\d+)?tipo=(?P<tipo>\w+)$', RegioneDetailView.as_view(), name="nominati_regione_tipologie"),
+    url(r'^nazione/$', NazioneView.as_view(), name="nominati_nazione"),
+    url(r'^nazione/?tipo=(?P<tipo>\w+)$', NazioneView.as_view(), name="nominati_nazione_tipologie"),
     url(r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}, name='login'),
     url(r'^logout/$', 'django.contrib.auth.views.logout', {'next_page' : '/'}, name='nominati_logout'),
     url(r'^enti/$', EnteListView.as_view(), name="nominati_ente_list"),
