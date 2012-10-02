@@ -29,8 +29,9 @@ class Partecipata(models.Model):
     codice_fiscale = models.CharField(max_length=11, primary_key=True)
     denominazione = models.CharField(max_length=255)
     macro_tipologia = models.CharField(max_length=32, choices=MACRO_TIPOLOGIA)
-    tipologia_partecipata = models.ForeignKey('TipologiaPartecipata')
-    competenza_partecipata = models.ForeignKey('CompetenzaPartecipata', null=True)
+    tipologia_partecipata = models.ForeignKey('TipologiaPartecipata', null=True, on_delete=models.SET_NULL)
+    competenza_partecipata = models.ForeignKey('CompetenzaPartecipata', null=True, on_delete=models.SET_NULL)
+    finalita_partecipata = models.ForeignKey('FinalitaPartecipata', null=True, on_delete=models.SET_NULL)
     url = models.URLField(blank=True, null=True)
 
     @property
@@ -71,11 +72,26 @@ class TipologiaPartecipata(models.Model):
 class CompetenzaPartecipata(models.Model):
     denominazione = models.CharField(max_length=255)
 
+    @property
+    def finalita(self):
+        return self.finalitapartecipata_set.all()
+
     def __unicode__(self):
         return self.denominazione
 
     class Meta:
         verbose_name_plural = u'Competenze partecipate'
+
+class FinalitaPartecipata(models.Model):
+    denominazione = models.CharField(max_length=255)
+    competenza_partecipata = models.ManyToManyField(CompetenzaPartecipata, db_table='nominati_competenza_finalita')
+
+    def __unicode__(self):
+        return self.denominazione
+
+    class Meta:
+        verbose_name_plural = u'Finalità partecipate'
+
 
 class Bilancio(models.Model):
     RESOCONTO = Choices(

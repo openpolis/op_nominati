@@ -101,8 +101,11 @@ class RegioneDetailView(AccessControlView, DetailView):
                 context['table'] = partecipate.order_by('tipologia_partecipata')
                 self.template_name = "nominati/part_tipologia.html"
             if tipologia == 'part_competenze':
-                context['table'] = partecipate.order_by('competenza_partecipata')
+                context['table'] = partecipate.order_by('-competenza_partecipata')
                 self.template_name = "nominati/part_competenze.html"
+            if tipologia == 'part_finalita':
+                context['table'] = partecipate.order_by('-finalita_partecipata')
+                self.template_name = "nominati/part_finalita.html"
             if tipologia == 'part_resoconto':
                 context['table'] = partecipate.order_by('bilancio__resoconto').distinct()
                 self.template_name = "nominati/part_resoconto.html"

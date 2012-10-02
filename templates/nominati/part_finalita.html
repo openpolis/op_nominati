@@ -1,6 +1,6 @@
-{% extends base_template %}
+{% extends "nominati/regione_detail.html" %}
 
-{% block competenze_class %}class="active"{% endblock %}
+{% block finalita_class %}class="active"{% endblock %}
 
 {% block content%}
 
@@ -10,7 +10,7 @@
 
             <tr>
                 <th>
-                    Competenza
+                    Finalit&agrave;
                 </th>
                 <th>
                     Denominazione
@@ -20,7 +20,7 @@
 
             {% for p in table %}
                 <tr>
-                    <td>{{ p.competenza_partecipata|default_if_none:"-" }}</td>
+                    <td>{{ p.finalita_partecipata|default_if_none:"-" }}</td>
                     <td class="denominazione"><a href="/admin/nominati/partecipata/{{ p.codice_fiscale }}" target="_blank">{{ p.denominazione }}</a></td>
 
                 </tr>
