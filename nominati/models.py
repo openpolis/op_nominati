@@ -217,12 +217,12 @@ class Persona(models.Model):
 class Regione(models.Model):
     nome = models.CharField(max_length=32)
 
-    @property
-    def n_partecipate(self):
-        return Partecipata.objects.filter(ente__regione = self).count()
-
     def __unicode__(self):
         return self.nome
+
+    @property
+    def n_partecipate(self):
+        return Partecipata.objects.filter(ente__regione = self._get_pk_val()).distinct().count()
 
     class Meta:
         verbose_name_plural = u'Regioni'
