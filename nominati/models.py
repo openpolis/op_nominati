@@ -4,7 +4,7 @@
 from model_utils import Choices
 from model_utils.managers import PassThroughManager
 from nominati.managers import TimeFramedQuerySet
-
+from django.utils.functional import cached_property
 from django.db import models
 from django.db.models import Sum
 from django.db.models.query_utils import Q
@@ -29,14 +29,14 @@ class Partecipata(models.Model):
     codice_fiscale = models.CharField(max_length=11, primary_key=True)
     denominazione = models.CharField(max_length=255)
     macro_tipologia = models.CharField(max_length=32, choices=MACRO_TIPOLOGIA)
-    tipologia_partecipata = models.ForeignKey('TipologiaPartecipata', null=True, on_delete=models.SET_NULL)
+    tipologia_partecipata = models.ForeignKey('TipologiaPartecipata', on_delete=models.PROTECT)
     competenza_partecipata = models.ForeignKey('CompetenzaPartecipata', null=True, on_delete=models.SET_NULL)
     finalita_partecipata = models.ForeignKey('FinalitaPartecipata', null=True, on_delete=models.SET_NULL)
     url = models.URLField(blank=True, null=True)
 
-    @property
+    @cached_property
     def ultimo_bilancio(self):
-        bilanci = self.bilancio_set.all().order_by('-anno')
+        bilanci = self.bilancio_set.all().order_by('-anno')[:1]
         return bilanci[0] if len(bilanci) else None
 
     @property

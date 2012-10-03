@@ -5,7 +5,7 @@
 {% block content%}
     {% block table %}
         <h3>Elenco partecipate per resoconto di bilancio</h3>
-        <table>
+        <table id="bilancio">
 
             <tr>
                 <th>
@@ -16,14 +16,13 @@
                 </th>
 
             </tr>
+            {% for b in table%}
+                <tr>
+                    <td class="{{ b.get_resoconto_display }}">{{ b.get_resoconto_display }} ({{ b.anno }})</td>
+                    <td class="{{ b.get_resoconto_display }}"><a href="/admin/nominati/partecipata/{{ b.partecipata_cf.codice_fiscale }}" target="_blank">{{ b.partecipata_cf.denominazione }}</a></td>
 
-            {% for p in table%}
-                {% if p.ultimo_bilancio %}
-                    <tr>
-                        <td>{{ p.ultimo_bilancio.get_resoconto_display }} ({{ p.ultimo_bilancio.anno }})</td>
-                        <td>{{ p.denominazione }}</td>
-                    </tr>
-                {% endif %}
+                </tr>
+
             {% endfor %}
         </table>
     {% endblock %}

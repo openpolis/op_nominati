@@ -32,11 +32,11 @@
                 </td>
             </tr>
 
-            {% for cognome,dati in table%}
+            {% for persona,dati in table%}
                 <tr>
                     <td class="ln_nome">
-                        <a href="{{ SITE_URL }}/admin/nominati/persona/{{dati.persona.pk}}" target="_blank">
-                            {{ cognome }}&nbsp;{{ dati.persona.nome }}
+                        <a href="{{ SITE_URL }}/admin/nominati/persona/{{persona}}" target="_blank">
+                            {{ dati.nome }}
                         </a>
                     </td>
                     <td class="ln_incarichi">

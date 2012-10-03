@@ -13,7 +13,7 @@ from django.template.defaultfilters import slugify
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-from nominati.models import Incarico, Ente, Persona, TipoCarica, Regione, Partecipata
+from nominati.models import Incarico, Ente, Persona, TipoCarica, Regione, Partecipata, Bilancio
 import json
 from json.encoder import JSONEncoder
 import urllib2
@@ -94,10 +94,14 @@ class RegioneDetailView(AccessControlView, DetailView):
         now = datetime.now()
         context['table'] = []
         context['base_template']='nominati/regione_detail.html'
-        partecipate = Partecipata.objects.filter(ente__regione = r).distinct()
+        partecipate = Partecipata.objects.all().filter(ente__regione = r).select_related().distinct()
+
         if tipologia != '':
             if tipologia =='part_tipologia':
-                context['table'] = partecipate.order_by('tipologia_partecipata')
+                context['table'] = partecipate.\
+                    annotate(n_inc=Count('incarico')).\
+                    annotate(s_inc=Sum('incarico__compenso_totale')).\
+                    order_by('tipologia_partecipata')
                 self.template_name = "nominati/part_tipologia.html"
             if tipologia == 'part_competenze':
                 context['table'] = partecipate.order_by('-competenza_partecipata')
@@ -106,15 +110,25 @@ class RegioneDetailView(AccessControlView, DetailView):
                 context['table'] = partecipate.order_by('-finalita_partecipata')
                 self.template_name = "nominati/part_finalita.html"
             if tipologia == 'part_resoconto':
-                context['table'] = partecipate.order_by('bilancio__resoconto').distinct()
+                partecipate_ids = partecipate.values_list('codice_fiscale')
+                bilancio_part={}
+                for b in Bilancio.objects.filter(partecipata_cf__codice_fiscale__in=partecipate_ids):
+                    if b.partecipata_cf not in bilancio_part:
+                        bilancio_part[b.partecipata_cf] = b
+                    elif b.resoconto is not None and b.anno > bilancio_part[b.partecipata_cf].anno:
+                        bilancio_part[b.partecipata_cf] = b
+
+                context['table']=sorted(bilancio_part.values(),key=lambda bilancio: bilancio.resoconto)
+
                 self.template_name = "nominati/part_resoconto.html"
             if tipologia == 'amm_tot':
                 incarichi = Incarico.objects.filter(ente_nominante_cf__regione = r).\
                 filter(Q(data_inizio__lte=now) &
                        (Q(data_fine__gte=now) | Q(data_fine__isnull=True)))
-                context['n_amministratori'] = incarichi.values('persona').distinct().count()
+                #context['n_amministratori'] = incarichi.values('persona').distinct().count()
                 context['n_amministratori_uomini'] = incarichi.filter(persona__sesso=1).values('persona').distinct().count()
                 context['n_amministratori_donne'] = incarichi.filter(persona__sesso=0).values('persona').distinct().count()
+                context['n_amministratori'] =context['n_amministratori_donne']+context['n_amministratori_uomini']
 
                 # age levels and filters
                 ages = [
@@ -225,18 +239,20 @@ class RegioneDetailView(AccessControlView, DetailView):
                 self.template_name = 'nominati/amm_compenso.html'
 
             if tipologia == 'lista_nominati':
+
                 incarichi = Incarico.objects.filter(ente_nominante_cf__regione = r).\
                     filter(Q(data_inizio__lte=now) &
-                           (Q(data_fine__gte=now) | Q(data_fine__isnull=True)))
-                persone_id = incarichi.values('persona','persona__cognome').distinct().order_by('persona__cognome')
+                           (Q(data_fine__gte=now) | Q(data_fine__isnull=True))).select_related()
+                persone_id = incarichi.values('persona','persona__cognome', 'persona__nome').distinct().order_by('persona__cognome')
 
                 context['table']=\
                 [
                 (
-                    p['persona__cognome'],
+                    p['persona'],
                     {
-                        'persona': Persona.objects.get(pk=p['persona']),
-                        'incarichi':Incarico.objects.filter(persona = p['persona'], ente_nominante_cf__regione = r)
+                        'persona': p['persona'],
+                        'nome': p['persona__cognome']+' '+p['persona__nome'],
+                        'incarichi':incarichi.filter(persona = p['persona'])
                     }
                     )
                 for p in persone_id
@@ -268,14 +284,16 @@ class NazioneView(AccessControlView, TemplateView):
                 partecipate = Partecipata.objects.all().distinct().select_related('tipologia_partecipata')
                 context['table'] = partecipate.order_by('tipologia_partecipata')
                 self.template_name = "nominati/part_tipologia.html"
+
             if tipologia == 'part_competenze':
                 partecipate = Partecipata.objects.all().distinct().select_related('competenza_partecipata')
                 context['table'] = partecipate.order_by('competenza_partecipata')
                 self.template_name = "nominati/part_competenze.html"
-            if tipologia == 'part_resoconto':
 
+            if tipologia == 'part_resoconto':
                 context['table'] = partecipate.order_by('bilancio__resoconto').distinct()
                 self.template_name = "nominati/part_resoconto.html"
+
             if tipologia == 'amm_tot':
                 incarichi = Incarico.objects.all().\
                 filter(Q(data_inizio__lte=now) &
@@ -368,7 +386,7 @@ class NazioneView(AccessControlView, TemplateView):
                 filter(Q(data_inizio__lte=now) &
                        (Q(data_fine__gte=now) | Q(data_fine__isnull=True)))
                 context['table'] = incarichi.\
-                filter(persona__openpolis_id__isnull=False).exclude(persona__openpolis_id='').distinct()
+                    filter(persona__openpolis_id__isnull=False).exclude(persona__openpolis_id='').distinct()
 
                 self.template_name = 'nominati/amm_politici.html'
 
@@ -376,9 +394,10 @@ class NazioneView(AccessControlView, TemplateView):
                 incarichi = Incarico.objects.all().\
                 filter(Q(data_inizio__lte=now) &
                        (Q(data_fine__gte=now) | Q(data_fine__isnull=True)))
-                context['table'] = incarichi.\
-                values('persona', 'persona__nome', 'persona__cognome').\
-                annotate(n=Count('persona')).order_by('-n')
+
+                context['table']= incarichi.\
+                    values('persona', 'persona__nome', 'persona__cognome').\
+                    annotate(n=Count('persona')).filter(n__gt=2).order_by('-n')
 
                 self.template_name = 'nominati/amm_incarichi.html'
 
@@ -387,8 +406,8 @@ class NazioneView(AccessControlView, TemplateView):
                 filter(Q(data_inizio__lte=now) &
                        (Q(data_fine__gte=now) | Q(data_fine__isnull=True)))
                 context['table'] = incarichi.\
-                values('persona', 'persona__nome', 'persona__cognome').\
-                annotate(s=Sum('compenso_totale')).order_by('-s')
+                    values('persona', 'persona__nome', 'persona__cognome').\
+                    annotate(s=Sum('compenso_totale')).filter(s__gte=100000).order_by('-s')
 
                 self.template_name = 'nominati/amm_compenso.html'
 

@@ -27,8 +27,8 @@
                 <tr>
                     <td>{{ p.tipologia_partecipata }}</td>
                     <td class="denominazione"><a href="/admin/nominati/partecipata/{{ p.codice_fiscale }}" target="_blank">{{ p.denominazione }}</a></td>
-                    <td>{{ p.numero_incarichi_attivi|default:"-" }}</td>
-                    <td>{{ p.totale_compensi_incarichi_attivi|default_if_none:"-"}}</td>
+                    <td>{{ p.n_inc|default:"-" }}</td>
+                    <td>{{ p.s_inc|default_if_none:"-"}}</td>
                 </tr>
             {% endfor %}
         </table>

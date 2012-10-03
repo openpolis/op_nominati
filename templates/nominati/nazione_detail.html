@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "nominati/regione_detail.html" %}
 
 {% block title %}
     Nazione
@@ -14,23 +14,24 @@
 
 
         <div id="toc">
-            Partecipate
+            <b>Partecipate</b>
             <ul>
-                <li><a href="/nazione/?tipo=part_tipologia">Elenco per tipologia</a></li>
-                <li><a href="/nazione/?tipo=part_competenze">Elenco per competenze</a></li>
-                <li><a href="/nazione/?tipo=part_resoconto">Elenco per resoconto di bilancio</a></li>
+                <li {% block tipologia_class %}{% endblock %}><a href="/nazione/?tipo=part_tipologia">Elenco per tipologia</a></li>
+                <li {% block competenze_class %}{% endblock %}><a href="/nazione/?tipo=part_competenze">Elenco per competenze</a></li>
+                <li {% block finalita_class %}{% endblock %}><a href="/nazione/?tipo=part_finalita">Elenco per finalit&agrave;</a></li>
+                <li {% block resoconto_class %}{% endblock %}><a href="/nazione/?tipo=part_resoconto">Elenco per resoconto di bilancio</a></li>
             </ul>
-            Amministratori
+            <b>Amministratori</b>
             <ul>
-                <li><a href="/nazione/?tipo=amm_tot#n">Numero totale</a></li>
-                <li><a href="/nazione/?tipo=amm_tot#eta">Per fasce d'et&agrave;</a></li>
-                <li><a href="/nazione/?tipo=amm_tot#incarico">Per tipo d'incarico</a></li>
-                <li><a href="/nazione/?tipo=amm_politici">Elenco dei politici (OP)</a></li>
-                <li><a href="/nazione/?tipo=amm_incarichi">Elenco ordinato per numero di incarichi</a></li>
-                <li><a href="/nazione/?tipo=amm_compenso">Elenco ordinato per compenso</a></li>
-                <li><a href="/nazione/?tipo=lista_nominati">Lista nominati</a></li>
+                <li {% block amm_tot_class %}{% endblock %}><a href="/nazione/?tipo=amm_tot">Numero totale <BR> Fasce d'et&agrave; <BR> Tipo di incarico</a></li>
+                <li {% block politici_class %}{% endblock %}><a href="/nazione/?tipo=amm_politici">Elenco dei politici (OP)</a></li>
+                <li {% block incarichi_class %}{% endblock %}><a href="/nazione/?tipo=amm_incarichi">Elenco ordinato per numero di incarichi</a></li>
+                <li {% block compenso_class %}{% endblock %}><a href="/nazione/?tipo=amm_compenso">Elenco ordinato per compenso</a></li>
+                <li {% block nominati_class %}{% endblock %}><a href="/nazione/?tipo=lista_nominati">Lista nominati</a></li>
             </ul>
         </div>
+
+
     </div>
 {% endblock %}
 
@@ -95,6 +96,9 @@
         .ln_partecipata {width:40%;}
         .ln_ente        {width:30%;}
         .ln_compenso    {width:10%;}
+        #bilancio td.Pareggio {background-color: #ccc;}
+        #bilancio td.Avanzo {background-color: #aaa;}
+        #bilancio td.Perdita {background-color: #eee;}
 
     </style>
 {% endblock %}
