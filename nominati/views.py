@@ -253,26 +253,6 @@ class RegioneDetailView(AccessControlView, DetailView):
                     order_by('persona__cognome')
 
                 context['table']=incarichi
-
-                '''
-                incarichi = Incarico.objects.filter(ente_nominante_cf__regione = r).\
-                    filter(Q(data_inizio__lte=now) &
-                           (Q(data_fine__gte=now) | Q(data_fine__isnull=True))).select_related()
-                persone_id = incarichi.values('persona','persona__cognome', 'persona__nome').distinct().order_by('persona__cognome')
-
-                context['table']=\
-                [
-                (
-                    p['persona'],
-                    {
-                        'persona': p['persona'],
-                        'nome': p['persona__cognome']+' '+p['persona__nome'],
-                        'incarichi':incarichi.filter(persona = p['persona'])
-                    }
-                    )
-                for p in persone_id
-                ]
-                '''
                 self.template_name = 'nominati/lista_nominati.html'
 
         return context
@@ -296,7 +276,10 @@ class NazioneView(AccessControlView, TemplateView):
 
         if tipologia != '':
             if tipologia =='part_tipologia':
-                context['table'] = partecipate.order_by('tipologia_partecipata')
+                context['table'] = partecipate.\
+                    annotate(n_inc=Count('incarico')).\
+                    annotate(s_inc=Sum('incarico__compenso_totale')).\
+                    order_by('tipologia_partecipata')
                 self.template_name = "nominati/part_tipologia.html"
 
             if tipologia == 'part_competenze':
