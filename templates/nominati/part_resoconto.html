@@ -8,7 +8,7 @@
         <table id="bilancio">
 
             <tr>
-                <th>
+                <th class="resoconto">
                     Resoconto (Anno)
                 </th>
                 <th>
@@ -18,7 +18,7 @@
             </tr>
             {% for b in table%}
                 <tr>
-                    <td class="{{ b.get_resoconto_display }}">{{ b.get_resoconto_display }} ({{ b.anno }})</td>
+                    <td class="resoconto {{ b.get_resoconto_display }}">{{ b.get_resoconto_display }} ({{ b.anno }})</td>
                     <td class="{{ b.get_resoconto_display }}"><a href="/admin/nominati/partecipata/{{ b.partecipata_cf.codice_fiscale }}" target="_blank">{{ b.partecipata_cf.denominazione }}</a></td>
 
                 </tr>

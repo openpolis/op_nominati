@@ -97,18 +97,22 @@ class RegioneDetailView(AccessControlView, DetailView):
         partecipate = Partecipata.objects.all().filter(ente__regione = r).select_related().distinct()
 
         if tipologia != '':
+
             if tipologia =='part_tipologia':
                 context['table'] = partecipate.\
                     annotate(n_inc=Count('incarico')).\
                     annotate(s_inc=Sum('incarico__compenso_totale')).\
                     order_by('tipologia_partecipata')
                 self.template_name = "nominati/part_tipologia.html"
+
             if tipologia == 'part_competenze':
                 context['table'] = partecipate.order_by('-competenza_partecipata')
                 self.template_name = "nominati/part_competenze.html"
+
             if tipologia == 'part_finalita':
                 context['table'] = partecipate.order_by('-finalita_partecipata')
                 self.template_name = "nominati/part_finalita.html"
+
             if tipologia == 'part_resoconto':
                 partecipate_ids = partecipate.values_list('codice_fiscale')
                 bilancio_part={}
@@ -119,8 +123,8 @@ class RegioneDetailView(AccessControlView, DetailView):
                         bilancio_part[b.partecipata_cf] = b
 
                 context['table']=sorted(bilancio_part.values(),key=lambda bilancio: bilancio.resoconto)
-
                 self.template_name = "nominati/part_resoconto.html"
+
             if tipologia == 'amm_tot':
                 incarichi = Incarico.objects.filter(ente_nominante_cf__regione = r).\
                 filter(Q(data_inizio__lte=now) &
@@ -214,7 +218,9 @@ class RegioneDetailView(AccessControlView, DetailView):
                     filter(Q(data_inizio__lte=now) &
                            (Q(data_fine__gte=now) | Q(data_fine__isnull=True)))
                 context['table'] = incarichi.\
-                    filter(persona__openpolis_id__isnull=False).exclude(persona__openpolis_id='').distinct()
+                    filter(persona__openpolis_id__isnull=False).\
+                    exclude(persona__openpolis_id='').\
+                    order_by('persona__cognome').distinct()
 
                 self.template_name = 'nominati/amm_politici.html'
 
@@ -239,7 +245,16 @@ class RegioneDetailView(AccessControlView, DetailView):
                 self.template_name = 'nominati/amm_compenso.html'
 
             if tipologia == 'lista_nominati':
+                incarichi = Incarico.objects.filter(ente_nominante_cf__regione = r).\
+                    filter(Q(data_inizio__lte=now) &
+                           (Q(data_fine__gte=now) | Q(data_fine__isnull=True))).\
+                    select_related('persona', 'tipo_carica', 'partecipata_cf', 'ente_nominante_cf').\
+                    annotate(nInc = Count('persona__incarico')).\
+                    order_by('persona__cognome')
 
+                context['table']=incarichi
+
+                '''
                 incarichi = Incarico.objects.filter(ente_nominante_cf__regione = r).\
                     filter(Q(data_inizio__lte=now) &
                            (Q(data_fine__gte=now) | Q(data_fine__isnull=True))).select_related()
@@ -257,7 +272,7 @@ class RegioneDetailView(AccessControlView, DetailView):
                     )
                 for p in persone_id
                 ]
-
+                '''
                 self.template_name = 'nominati/lista_nominati.html'
 
         return context
@@ -276,22 +291,32 @@ class NazioneView(AccessControlView, TemplateView):
         now = datetime.now()
         context['table'] = []
         context['base_template']='nominati/nazione_detail.html'
-        partecipate = Partecipata.objects.all().distinct()
+        partecipate = Partecipata.objects.all().select_related().distinct()
         context['n_partecipate'] = partecipate.count()
 
         if tipologia != '':
             if tipologia =='part_tipologia':
-                partecipate = Partecipata.objects.all().distinct().select_related('tipologia_partecipata')
                 context['table'] = partecipate.order_by('tipologia_partecipata')
                 self.template_name = "nominati/part_tipologia.html"
 
             if tipologia == 'part_competenze':
-                partecipate = Partecipata.objects.all().distinct().select_related('competenza_partecipata')
-                context['table'] = partecipate.order_by('competenza_partecipata')
+                context['table'] = partecipate.order_by('-competenza_partecipata')
                 self.template_name = "nominati/part_competenze.html"
 
+            if tipologia == 'part_finalita':
+                partecipate = Partecipata.objects.all().select_related('finalita_partecipata').distinct()
+                context['table'] = partecipate.order_by('-finalita_partecipata')
+                self.template_name = "nominati/part_finalita.html"
+
             if tipologia == 'part_resoconto':
-                context['table'] = partecipate.order_by('bilancio__resoconto').distinct()
+                bilancio_part={}
+                for b in Bilancio.objects.all().select_related():
+                    if b.partecipata_cf not in bilancio_part:
+                        bilancio_part[b.partecipata_cf] = b
+                    elif b.resoconto is not None and b.anno > bilancio_part[b.partecipata_cf].anno:
+                        bilancio_part[b.partecipata_cf] = b
+
+                context['table']=sorted(bilancio_part.values(),key=lambda bilancio: bilancio.resoconto)
                 self.template_name = "nominati/part_resoconto.html"
 
             if tipologia == 'amm_tot':
@@ -386,7 +411,11 @@ class NazioneView(AccessControlView, TemplateView):
                 filter(Q(data_inizio__lte=now) &
                        (Q(data_fine__gte=now) | Q(data_fine__isnull=True)))
                 context['table'] = incarichi.\
-                    filter(persona__openpolis_id__isnull=False).exclude(persona__openpolis_id='').distinct()
+                    filter(persona__openpolis_id__isnull=False).\
+                    exclude(persona__openpolis_id='').\
+                    order_by('persona__cognome').distinct()
+
+
 
                 self.template_name = 'nominati/amm_politici.html'
 
@@ -413,21 +442,13 @@ class NazioneView(AccessControlView, TemplateView):
 
             if tipologia == 'lista_nominati':
                 incarichi = Incarico.objects.all().\
-                filter(Q(data_inizio__lte=now) &
-                       (Q(data_fine__gte=now) | Q(data_fine__isnull=True)))
-                persone_id = incarichi.values('persona','persona__cognome').distinct().order_by('persona__cognome')
+                    filter(Q(data_inizio__lte=now) &
+                           (Q(data_fine__gte=now) | Q(data_fine__isnull=True))).\
+                    select_related('persona', 'tipo_carica', 'partecipata_cf', 'ente_nominante_cf').\
+                    annotate(nInc = Count('persona__incarico')).\
+                    order_by('persona__cognome')
 
-                context['table']=\
-                [
-                (
-                    p['persona__cognome'],
-                    {
-                        'persona': Persona.objects.get(pk=p['persona']),
-                        'incarichi':Incarico.objects.filter(persona = p['persona'],)
-                    }
-                    )
-                for p in persone_id
-                ]
+                context['table']=incarichi
 
                 self.template_name = 'nominati/lista_nominati.html'
 

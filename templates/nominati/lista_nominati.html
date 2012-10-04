@@ -5,11 +5,11 @@
 {% block content%}
 
     {% block table %}
-        <h3>Lista Nominati</h3>
+        <h3 xmlns="http://www.w3.org/1999/html">Lista Nominati</h3>
         <table id="lista_nominati">
 
             <tr class="ln_header">
-                <td class="">
+                <td class="ln_nome">
                     Nome
                     </a>
                 </td>
@@ -32,39 +32,44 @@
                 </td>
             </tr>
 
-            {% for persona,dati in table%}
-                <tr>
-                    <td class="ln_nome">
-                        <a href="{{ SITE_URL }}/admin/nominati/persona/{{persona}}" target="_blank">
-                            {{ dati.nome }}
-                        </a>
-                    </td>
-                    <td class="ln_incarichi">
-                        <table class="lista_nominati_inc">
-                            {% for i in dati.incarichi %}
-                                <tr>
-                                <td class="ln_carica">
+            {% regroup table by persona as persona_list %}
+                {% for persona in persona_list %}
+                    <tr>
+                        <td class="ln_nome">
+                            <a href="{{ SITE_URL }}/admin/nominati/persona/{{persona.grouper.pk}}" target="_blank">
+                                {{ persona.grouper }}
+                                </a>
+                        </td>
+                        <td class="ln_incarichi">
+                            <table class="lista_nominati_inc">
+                                {% for item in persona.list %}
+                                    <tr>
+                                    <td class="ln_carica">{{ item.tipo_carica }}</td>
+                                    <td class="ln_partecipata">
+                                        <a href="{{ SITE_URL }}/admin/nominati/partecipata/{{item.partecipata_cf.codice_fiscale}}" target="_blank">
+                                            {{ item.partecipata_cf }}
+                                        </a>
+                                    </td>
+                                    <td class="ln_ente">
+                                        {% if item.ente_nominante_cf%}
+                                            <a href="{{ SITE_URL }}/admin/nominati/ente/{{item.ente_nominante_cf.codice_fiscale}}">
+                                                {{ item.ente_nominante_cf}}
+                                            </a>
+                                        {% else %}
+                                            -
+                                        {% endif %}
 
-                                    {{ i.tipo_carica }}
-                                </td>
-                                <td class="ln_partecipata">
-                                    {{ i.partecipata_cf }}
-                                </td>
-                                <td class="ln_ente">
-                                    {{ i.ente_nominante_cf }}
-                                </td>
-                                <td class="ln_compenso">
-                                {% if i.compenso_totale%}
-                                    {{ i.compenso_totale }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            {% endfor %}
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            {% endfor %}
+                                    </td>
+
+                                    <td class="ln_compenso">{{ item.compenso_totale|default_if_none:"-" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        </td>
+                    </tr>
+                {% endfor %}
         </table>
     {% endblock %}
 {% endblock %}
+
+
