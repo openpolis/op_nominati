@@ -1,7 +1,7 @@
 from django.db.models.aggregates import Count, Sum
 from django.db.models.query_utils import Q
 from django.http import HttpResponse, HttpResponseNotFound
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.core.serializers import serialize
 from django.conf import settings
 from django.views.generic import TemplateView
@@ -564,9 +564,11 @@ class EnteDetailView(AccessControlView, DetailView):
         return context
 
 
-def home(self):
-    return render_to_response('nominati/home.html')
-
+def home(request):
+    if request.user.is_authenticated():
+        return render_to_response('nominati/home.html')
+    else:
+        return redirect('login/?next=/')
 
 def check_similars_views(request, object_id):
     if not (request.user.is_authenticated() and request.user.is_staff):
