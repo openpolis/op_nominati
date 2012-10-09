@@ -1,289 +1,70 @@
 {% extends "base.html" %}
 
-
 {% block title %}
-   Ente - {{ ente.denominazione }}
+    Ente {{ ente }}
 {% endblock %}
 
 {% block header %}
-    {{ block.super }}
-    <a href="/enti">Torna alla ricerca per enti</a>
+    {{ block.super }}<BR />
+    {% if user.is_authenticated %}
+        <a href="{% url nominati_ente_list %}">Torna alla ricerca per ente</a><BR />
+        <a href="{% url nominati_regione_list %}">Torna alla lista delle regioni</a>
+    {% endif %}
+
+{% endblock %}
+
+{% block sidebar %}
+    <div id="sidebar">
+        <h2>Ente</h2>
+
+        <b>Denominazione</b><BR>
+        {{ ente }}<br/>
+
+        <!--   <b>Codice fiscale</b>:
+        {{ ente.codice_fiscale }}<br/> -->
+
+        <b>Numero partecipate</b><BR>
+        {{ ente.n_partecipate }}<BR>
+
+
+        <div id="toc">
+            <b>Partecipate</b>
+            <ul>
+                <li {% block tipologia_class %}{% endblock %}><a href="/enti/{{ ente.pk }}?tipo=part_tipologia">Elenco per tipologia</a></li>
+                <li {% block competenze_class %}{% endblock %}><a href="/enti/{{ ente.pk }}?tipo=part_competenze">Elenco per competenze</a></li>
+                <li {% block finalita_class %}{% endblock %}><a href="/enti/{{ ente.pk }}?tipo=part_finalita">Elenco per finalit&agrave;</a></li>
+                <li {% block resoconto_class %}{% endblock %}><a href="/enti/{{ ente.pk }}?tipo=part_resoconto">Elenco per resoconto di bilancio</a></li>
+            </ul>
+            <b>Amministratori</b>
+            <ul>
+                <li {% block amm_tot_class %}{% endblock %}><a href="/enti/{{ ente.pk }}?tipo=amm_tot">Numero totale <BR> Fasce d'et&agrave; <BR> Tipo di incarico</a></li>
+                <li {% block politici_class %}{% endblock %}><a href="/enti/{{ ente.pk }}?tipo=amm_politici">Elenco dei politici (OP)</a></li>
+                <li {% block incarichi_class %}{% endblock %}><a href="/enti/{{ ente.pk }}?tipo=amm_incarichi">Elenco ordinato per numero di incarichi</a></li>
+                <li {% block compenso_class %}{% endblock %}><a href="/enti/{{ ente.pk }}?tipo=amm_compenso">Elenco ordinato per compenso</a></li>
+                <li {% block nominati_class %}{% endblock %}><a href="/enti/{{ ente.pk }}?tipo=lista_nominati">Lista nominati</a></li>
+            </ul>
+        </div>
+    </div>
 {% endblock %}
 
 {% block content %}
-    <h2>Ente</h2>
+    <a name="top"></a>
+    {% block table %}
 
-        <b>Denominazione: </b>:
-        {{ ente.denominazione }}<br/>
+        <h3>{% block table_title %}Scegli dal menu di navigazione la voce che ti interessa{% endblock %}</h3>
 
-        <b>Codice fiscale</b>:
-        {{ ente.codice_fiscale }}<br/>
-
-        <b>Numero partecipate</b>:
-        {{ ente.n_partecipate }}
-
-        <a name="toc"></a>
-        <ul>
-          <li>
-            Partecipate
-            <ul>
-              <li><a href="#part_tipologia">Elenco per tipologia</a></li>
-              <li><a href="#part_competenze">Elenco per competenze</a></li>
-              <li><a href="#part_resoconto">Elenco per resoconto di bilancio</a></li>
-            </ul>
-          </li>
-          <li>
-            Amministratori
-            <ul>
-              <li><a href="#amm_tot">Numero totale</a></li>
-              <li><a href="#amm_eta">Per fascie d'et&agrave;</a></li>
-              <li><a href="#amm_tipo">Per tipo d'incarico</a></li>
-              <li><a href="#amm_politici">Elenco dei politici (OP)</a></li>
-              <li><a href="#amm_incarichi">Elenco ordinato per numero di incarichi</a></li>
-              <li><a href="#amm_compenso">Elenco ordinato per compenso</a></li>
-              <li><a href="#lista_nominati">Lista nominati</a></li>
-            </ul>
-          </li>
-        </ul>
-        
-        <a name="part_tipologia"></a>
-        <h3>Elenco partecipate per tipologia</h3>
-        <a href="#toc">Torna su</a>
-        <table>
-            {% for p in partecipate_by_tipologia %}
-                <tr>
-                    <td>{{ p.tipologia_partecipata }}</td>
-                    <td class="denominazione"><a href="/admin/nominati/partecipata/{{ p.codice_fiscale }}" target="_blank">{{ p.denominazione }}</a></td>
-                    <td>{{ p.numero_incarichi_attivi }}</td>
-                    <td>{{ p.totale_compensi_incarichi_attivi }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-
-        <a name="part_competenze"></a>
-        <h3>Elenco partecipate per competenze</h3>
-        <a href="#toc">Torna su</a>
-        <table>
-            {% for p in partecipate_by_competenza %}
-                <tr>
-                    <td>{{ p.competenza_partecipata }}</td>
-                    <td>{{ p.denominazione }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-
-        <a name="part_resoconto"></a>
-        <h3>Elenco partecipate per resoconto di bilancio</h3>
-        <a href="#toc">Torna su</a>
-        <table>
-            {% for p in partecipate_by_resoconto %}
-                {% if p.ultimo_bilancio %}
-                    <tr>
-                        <td>{{ p.ultimo_bilancio.get_resoconto_display }} ({{ p.ultimo_bilancio.anno }})</td>
-                        <td>{{ p.denominazione }}</td>
-                    </tr>
-                {% endif %}
-            {% endfor %}
-        </table>
-
-        <h2>Amministratori</h2>
-
-        <a name="amm_tot"></a>
-        <h3>Numero totale</h3>
-        <a href="#toc">Torna su</a>
-        <table>
-            <tr>
-                <td>Totale</td>
-                <td>{{ n_amministratori }} ({{ n_amministratori_uomini }} uomini e {{ n_amministratori_donne }} donne)</td>
-            </tr>
-        </table>
-
-        <a name="amm_eta"></a>
-        <h4>Per fasce d'età</h4>
-        <a href="#toc">Torna su</a>
-        <table>
-            <tr>
-                <td>under 25</td>
-                <td>{{ n_amministratori_under_25 }}
-                  ({{ n_amministratori_under_25_uomini }} uomini e {{ n_amministratori_under_25_donne }} donne)</td>
-            </tr>
-            <tr>
-                <td>tra 25 e 35</td>
-                <td>{{ n_amministratori_under_35 }}
-                  ({{ n_amministratori_under_35_uomini }} uomini e {{ n_amministratori_under_35_donne }} donne)</td>
-            </tr>
-            <tr>
-                <td>tra 35 e 45</td>
-                <td>{{ n_amministratori_under_45 }}
-                  ({{ n_amministratori_under_45_uomini }} uomini e {{ n_amministratori_under_45_donne }} donne)</td>
-            </tr>
-            <tr>
-                <td>tra 45 e 55</td>
-                <td>{{ n_amministratori_under_55 }}
-                  ({{ n_amministratori_under_55_uomini }} uomini e {{ n_amministratori_under_55_donne }} donne)</td>
-            </tr>
-            <tr>
-                <td>tra 55 e 65</td>
-                <td>{{ n_amministratori_under_65 }}
-                  ({{ n_amministratori_under_65_uomini }} uomini e {{ n_amministratori_under_65_donne }} donne)</td>
-            </tr>
-            <tr>
-                <td>over 65</td>
-                <td>{{ n_amministratori_over_65 }}
-                  ({{ n_amministratori_over_65_uomini }} uomini e {{ n_amministratori_over_65_donne }} donne)</td>
-            </tr>
-            <tr>
-                <td>data sconosciuta</td>
-                <td>{{ n_amministratori_unknown }}
-                  ({{ n_amministratori_unknown_uomini }} uomini e {{ n_amministratori_unknown_donne }} donne)</td>
-            </tr>
-        </table>
-
-        <a name="amm_tipo"></a>
-        <h4>Per tipo di incarico</h4>
-        <a href="#toc">Torna su</a>
-        <table>
-            {% for c in n_amministratori_tipo_carica %}
-              {% if c.tot %}
-                <tr>
-                  <td>{{ c.denominazione }}</td>
-                  <td>{{ c.tot }} ({{c.uomini}} uomini, {{c.donne}} donne)</td>
-                </tr>                
-              {% endif %}
-            {% endfor %}
-        </table>
-
-        <a name="amm_politici"></a>
-        <h3>Amministratori che sono politici</h3>
-        <a href="#toc">Torna su</a>
-        <table>
-            {% for a in amministratori_politici %}
-                <tr>
-                    <td>
-                        {{ a.persona }}
-                    </td>
-                    <td><a href="{{ OP_URL }}/politico/{{ a.persona.openpolis_id }}" target="_blank">vai</a></td>
-                </tr>
-            {% endfor %}
-        </table>
-
-
-        <a name="amm_incarichi"></a>
-        <h3>Amministratori per n incarichi</h3>
-        <a href="#toc">Torna su</a>
-        <table>
-            {% for a in amministratori_incarichi %}
-                <tr>
-                    <td>
-                        <a href="{{ SITE_URL }}/admin/nominati/persona/{{a.persona}}" target="_blank">
-                          {{ a.persona__nome }} {{ a.persona__cognome }}
-                        </a>
-                    </td>
-                    <td>{{ a.n }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-
-
-        <a name="amm_compenso"></a>
-        <h3>Amministratori per compenso</h3>
-        <a href="#toc">Torna su</a>
-        <table>
-            {% for a in amministratori_compensi %}
-                <tr>
-                    <td>
-                      <a href="{{ SITE_URL }}/admin/nominati/persona/{{a.persona}}" target="_blank">
-                        {{ a.persona__nome }} {{ a.persona__cognome }}
-                      </a>
-                    </td>
-                    <td>
-                      {% if a.s %}
-                        {{ a.s }} euro
-                      {% else %}
-                        {% ifequal a.s 0 %}
-                          0
-                        {% else %}
-                          -
-                        {% endifequal %}
-                      {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </table>
-
-
-        <a name="lista_nominati"></a>
-        <h3>Lista nominati</h3>
-        <a href="#toc">Torna su</a>
-        <table id="lista_nominati">
-        {% if lista_nominati %}
-
-            <tr class="ln_header">
-                <td class="">
-                  Nome
-                 </a>
-                </td>
-                <td class="ln_incarichi">
-                    <table class="lista_nominati_inc">
-                        <tr>
-                        <td class="ln_carica">
-                            Carica
-                        </td>
-                         <td class="ln_partecipata">
-                          Partecipata
-                        </td>
-                         <td class="ln_ente">
-                          Ente
-                        </td>
-                        <td class="ln_compenso">
-                        Compenso<BR>totale
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-
-
-        {% endif %}
-        {% for cognome,dati in lista_nominati%}
-                <tr>
-                    <td class="ln_nome">
-                      <a href="{{ SITE_URL }}/admin/nominati/persona/{{dati.persona.pk}}" target="_blank">
-                       {{ cognome }}&nbsp;{{ dati.persona.nome }}
-                     </a>
-                    </td>
-                    <td class="ln_incarichi">
-                        <table class="lista_nominati_inc">
-                        {% for i in dati.incarichi %}
-                            <tr>
-                            <td class="ln_carica">
-
-                              {{ i.tipo_carica }}
-                            </td>
-                             <td class="ln_partecipata">
-                              {{ i.partecipata_cf }}
-                            </td>
-                             <td class="ln_ente">
-                              {{ i.ente_nominante_cf }}
-                            </td>
-                            <td class="ln_compenso">
-                            {% if i.compenso_totale%}
-                              {{ i.compenso_totale }}
-                              {% else %}
-                              -
-                            {% endif %}
-                            {% endfor %}
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            {% endfor %}
-        </table>
-
-
-
-
+    {% endblock %}
+    <a href="#top">Torna su</a>
 {% endblock %}
 
+
+{% block footer %}
+    {{ block.super }}<BR>
+    {% if user.is_authenticated %}
+        <a href="{% url nominati_ente_list %}">Torna alla ricerca per ente</a><BR />
+        <a href="{% url nominati_regione_list %}">Torna alla lista delle regioni</a>
+    {% endif %}
+{% endblock %}
 
 {% block css_styles %}
     {{ block.super }}
@@ -291,19 +72,42 @@
         body {
             font-size: 16px;
 
-            }
+        }
         table {
-            width: 40em;
+            width: 50em;
             margin-top: 1em;
             border: 1px solid black;
             border-collapse: separate;
             border-spacing: 0px;
-            }
-        th { background-color: #d3d3d3; }
+        }
+        th { background-color: #d3d3d3; border:1px solid gray; }
         td { border: 1px solid gray;}
+        li.active {background:white;}
+        a:visited{color:blue;}
 
 
-        /*STE*/
+            /*STE*/
+        #header {position: relative;width: 50em; left:15em; padding-left:1em; }
+        #footer {position: relative;width: 50em; left:15em; padding-left:1em; }
+        #content{position: relative; width: 50em; left:15em; padding-left:1em;}
+        #sidebar {
+            position: fixed;
+            height:100%;
+            top:0px;
+            left:0;
+            width: 15em;
+            border-right: 2px solid #999;
+            background-color: #eeeeee;
+            padding-left:5px;
+
+        }
+
+        #sidebar ul{
+            list-style: disc;
+            padding-left:20px;
+        }
+        #toc{margin-top:30px;}
+
 
         table#lista_nominati {width: 60em;border:1px solid black; padding:0; margin:0;}
         tr.ln_header {background-color: #ddd;font-weight: bold; font-size: 14px; }
@@ -314,6 +118,11 @@
         .ln_partecipata {width:40%;}
         .ln_ente        {width:30%;}
         .ln_compenso    {width:10%;}
+        #bilancio td.Pareggio {background-color: #eee;}
+        #bilancio td.Avanzo {background-color: #B4EEB4;}
+        #bilancio td.Perdita {background-color: #FEF0C9;}
+        .resoconto{width: 10em;}
+        .tipologia{width: 10em;}
 
     </style>
 {% endblock %}
