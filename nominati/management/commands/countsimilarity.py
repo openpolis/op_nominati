@@ -5,8 +5,9 @@ import urllib2
 from django.utils.http import urlencode
 import json
 import logging
-
+from nominati.utils import get_json_response
 from nominati.models import Persona
+
 
 
 class Command(LabelCommand):
@@ -50,7 +51,10 @@ class Command(LabelCommand):
                             (settings.OP_API_SIMILARITY_BASE_URL, urlencode(parameters))
         self.logger.debug("url: %s" % op_similarity_url)
 
-        json_data = self.get_json_response(op_similarity_url)
+        username = settings.OP_API_USER
+        password = settings.OP_API_PASS
+
+        json_data = get_json_response(username, password, op_similarity_url)
         try:
             self.logger.info("n politici simili: %s" % json_data)
             n_similars = int(json_data)
@@ -62,30 +66,4 @@ class Command(LabelCommand):
             else:
                 self.logger.error("%s" % e)
 
-    def get_json_response(self, url):
-        """
-        generic method to get json response from url,
-        using basic authentication
-        """
-        username = settings.OP_API_USER
-        password = settings.OP_API_PASS
 
-        # this creates a password manager
-        passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        passman.add_password(None, url, username, password)
-        # because we have put None at the start it will always
-        # use this username/password combination for  urls
-        # for which `theurl` is a super-url
-
-        authhandler = urllib2.HTTPBasicAuthHandler(passman)
-        # create the AuthHandler
-
-        opener = urllib2.build_opener(authhandler)
-        urllib2.install_opener(opener)
-        # All calls to urllib2.urlopen will now use our handler
-        # Make sure not to include the protocol in with the URL, or
-        # HTTPPasswordMgrWithDefaultRealm will be very confused.
-        # You must (of course) use it when fetching the page though.
-
-        response = urllib2.urlopen(url)
-        return json.loads(response.read())

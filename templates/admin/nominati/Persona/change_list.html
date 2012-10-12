@@ -1,0 +1,132 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_static admin_list %}
+{% load url from future %}
+{% load admin_urls %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <style>
+        table.dup{
+            padding:5px;
+        }
+        tr.corrispondenza{
+            background-color: #b1fe8c;font-weight: bold;
+        }
+        td.persona,td.fixwidth{
+            width: 80px;
+        }
+        td.active{
+            background-color: #bbfe28;
+        }
+    </style>
+
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+
+    <script>
+
+        //helper function to create the form
+        function getNewSubmitForm(){
+            var submitForm = document.createElement("FORM");
+            document.body.appendChild(submitForm);
+            submitForm.method = "POST";
+            return submitForm;
+        }
+
+        //helper function to add elements to the form
+        function createNewFormElement(inputForm, elementName, elementValue){
+            var newElement = document.createElement("input")
+            newElement.type = "hidden";
+            newElement.name = elementName;
+            newElement.value = elementValue;
+            inputForm.appendChild(newElement);
+
+            return newElement;
+        }
+
+        //Merge Persona: set op_id to the selected persona
+        function mergePersona(persona_id, openpolis_id){
+            var result = confirm('Sei sicuro di voler fare il merge per questo Openpolis_id?');
+            if(result==false)
+                return;
+            else{
+                var submitForm = getNewSubmitForm();
+                createNewFormElement(submitForm, "persona_id", persona_id);
+                createNewFormElement(submitForm, "openpolis_id", openpolis_id);
+                createNewFormElement(submitForm, "return_page", document.URL);
+                createNewFormElement(submitForm,"csrfmiddlewaretoken", "{{ csrf_token }}")
+                submitForm.action= "/persona/merge_persona/";
+                submitForm.submit();
+            }
+        }
+
+        //Remove Persona: set op_id of the selected persona to NONE
+        function removePersona(persona_id, openpolis_id){
+            var result = confirm('Sei sicuro di voler rimuovere questo Openpolis_id?');
+            if(result==false)
+                return;
+            else{
+                var submitForm = getNewSubmitForm();
+                createNewFormElement(submitForm, "persona_id", persona_id);
+                createNewFormElement(submitForm, "return_page", document.URL);
+                createNewFormElement(submitForm,"csrfmiddlewaretoken", "{{ csrf_token }}")
+                submitForm.action= "/persona/remove_persona/";
+                submitForm.submit();
+            }
+        }
+    </script>
+{% endblock %}
+
+
+
+{% block content %}
+    <div id="content-main">
+        {% block object-tools %}
+            {% if has_add_permission %}
+                <ul class="object-tools">
+                    {% block object-tools-items %}
+                        <li>
+                            <a href="{% url cl.opts|admin_urlname:'add' %}{% if is_popup %}?_popup=1{% endif %}" class="addlink">
+                                {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
+                            </a>
+                        </li>
+                    {% endblock %}
+                </ul>
+            {% endif %}
+        {% endblock %}
+        {% if cl.formset.errors %}
+            <p class="errornote">
+                {% blocktrans count cl.formset.errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
+            </p>
+            {{ cl.formset.non_form_errors }}
+        {% endif %}
+        <div class="module{% if cl.has_filters %} filtered{% endif %}" id="changelist">
+            {% block search %}{% search_form cl %}{% endblock %}
+            {% block date_hierarchy %}{% date_hierarchy cl %}{% endblock %}
+
+            {% block filters %}
+                {% if cl.has_filters %}
+                    <div id="changelist-filter">
+                        <h2>{% trans 'Filter' %}</h2>
+                        {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
+                    </div>
+                {% endif %}
+            {% endblock %}
+
+            <form id="changelist-form" action="" method="post"{% if cl.formset.is_multipart %} enctype="multipart/form-data"{% endif %}>{% csrf_token %}
+                {% if cl.formset %}
+                    <div>{{ cl.formset.management_form }}</div>
+                {% endif %}
+
+                {% block result_list %}
+                    {% if action_form and actions_on_top and cl.full_result_count %}{% admin_actions %}{% endif %}
+                    {% result_list cl %}
+                    {% if action_form and actions_on_bottom and cl.full_result_count %}{% admin_actions %}{% endif %}
+                {% endblock %}
+                {% block pagination %}{% pagination cl %}{% endblock %}
+            </form>
+        </div>
+    </div>
+{% endblock %}

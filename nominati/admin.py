@@ -1,7 +1,15 @@
+import string
 from django.contrib import admin
 from nominati.filters import HasOpenpolisIdListFilter
 from nominati.utils import ImproveRawIdFieldsTabularInlineForm, ImproveRawIdFieldsStackedInlineForm
 from nominati.models import *
+from nominati.utils import get_json_response
+from django.conf import settings
+from django.template import loader, Context
+from datetime import datetime
+import re
+from django.utils.http import urlencode
+
 
 
 class PartecipazioneInline(ImproveRawIdFieldsTabularInlineForm):
@@ -31,11 +39,47 @@ class PartecipataAdmin(admin.ModelAdmin):
     list_filter = ('tipologia_partecipata', 'competenza_partecipata')
 
 class PersonaAdmin(admin.ModelAdmin):
+
+    change_list_template = "admin/nominati/Persona/change_list.html"
     inlines = (IncaricoInline,)
+    list_per_page = 10
     search_fields = ['^nome', '^cognome']
     list_filter = ('openpolis_n_similars', HasOpenpolisIdListFilter)
-    list_display = ('__unicode__', 'openpolis_n_similars', 'has_openpolis_id', 'openpolis_id', 'similars_link')
-    list_editable = ('openpolis_id',)
+    list_display = ('__unicode__', 'data_nascita_it','luogo_nascita', 'openpolis_id', 'similars_merge')
+
+    def data_nascita_it(self, obj):
+        return '{0}/{1}/{2}'.format(obj.data_nascita.day, obj.data_nascita.month, obj.data_nascita.year)
+
+       #return obj.data_nascita.strftime("%d/%m/%Y")
+
+    data_nascita_it.short_description = "Data nascita"
+
+    def similars_merge(self, obj):
+
+        diz_encode = {'first_name': obj.nome, 'last_name': obj.cognome}
+        url = settings.OP_API_SIMILARITY_BASE_URL + "/?" + urlencode(diz_encode)
+        json_resp = get_json_response(settings.OP_API_USER, settings.OP_API_PASS, url)
+
+        if "error" in json_resp:
+            return json_resp['error']
+
+        #format date and charges string for template visualization
+        for sim in json_resp:
+            if sim['birth_date'] is not None and sim['birth_date'] !='':
+                date = datetime.strptime(sim['birth_date'],"%Y-%m-%d %H:%M:%S")
+                sim['birth_date'] = '{0}/{1}/{2}'.format(date.day, date.month, date.year)
+
+            for i in range(0,len(sim['charges'])):
+                sim['charges'][i] = re.sub('(\sal[\s]*\d\d/\d\d/\d\d\d\d)\s(.*)','\\1 <br/> \\2',sim['charges'][i])
+
+        t = loader.get_template('admin/nominati/Persona/duplicati_table.html')
+        c = Context({ 'json_resp': json_resp ,'persona_id':obj.pk, 'openpolis_id': obj.op_id, 'data_nascita': self.data_nascita_it(obj), 'luogo_nascita': string.strip(obj.luogo_nascita)})
+        return t.render(c)
+
+
+    similars_merge.allow_tags = True
+
+
 
     def similars_link(self, obj):
         if obj.openpolis_n_similars == None:

@@ -19,15 +19,16 @@ class Comparto(models.Model):
     class Meta:
         verbose_name_plural = u'Comparti'
 
+
 class Partecipata(models.Model):
+    codice_fiscale = models.CharField(max_length=11, primary_key=True)
+    denominazione = models.CharField(max_length=255)
     MACRO_TIPOLOGIA = Choices(
         ('SOCIETA\'', 'Società'),
         ('CONSORZIO', 'Consorzio'),
         ('FONDAZIONE', 'Fondazione')
     )
 
-    codice_fiscale = models.CharField(max_length=11, primary_key=True)
-    denominazione = models.CharField(max_length=255)
     macro_tipologia = models.CharField(max_length=32, choices=MACRO_TIPOLOGIA)
     tipologia_partecipata = models.ForeignKey('TipologiaPartecipata', on_delete=models.PROTECT)
     competenza_partecipata = models.ForeignKey('CompetenzaPartecipata', null=True, on_delete=models.SET_NULL)
@@ -184,6 +185,7 @@ class Partecipazione(models.Model):
         verbose_name = u'Partecipazione'
         verbose_name_plural = u'Partecipazioni'
 
+
 class Persona(models.Model):
     FEMALE_SEX = 0
     MALE_SEX = 1
@@ -198,17 +200,25 @@ class Persona(models.Model):
     luogo_nascita = models.CharField(max_length=64, null=True, blank=True)
     sesso = models.IntegerField(choices=SEX, blank=True)
     openpolis_id = models.CharField(max_length=10, null=True, blank=True)
-    openpolis_n_similars = models.IntegerField(default=0)
+    openpolis_n_similars = models.IntegerField(default=0,verbose_name=u"n_similars")
 
     @property
     def incarichi(self):
         return self.incarico_set.all()
 
+    @property
+    def op_id(self):
+        if self.openpolis_id !=  '' and self.openpolis_id is not None:
+            return int(self.openpolis_id)
+        else:
+            return None
+
     def __unicode__(self):
         return self.nome + " " + self.cognome
 
-    def has_openpolis_id(self):
+    def has_op_id(self):
         return True if self.openpolis_id else False;
+
 
     class Meta:
         verbose_name_plural = u'Persone'

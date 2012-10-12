@@ -335,6 +335,30 @@ class EnteJSONListView(JSONResponseMixin, EnteListView):
         return dumps(context['ente_list'])
 
 
+class MergePersona_OP(View):
+
+    def post(self, *args, **kwargs):
+        #set the attrib openpolis_id for the selected persona
+        if self.request.POST is not None:
+            post = self.request.POST
+            persona_id = post['persona_id']
+            p = Persona.objects.get(pk=persona_id)
+            p.openpolis_id = post['openpolis_id']
+            p.save()
+        return redirect(post['return_page'])
+
+
+class RemovePersona_OP(View):
+
+    def post(self, *args, **kwargs):
+        #remove the attrib openpolis_id for the selected persona
+        if self.request.POST is not None:
+            post = self.request.POST
+            persona_id = post['persona_id']
+            p = Persona.objects.get(pk=persona_id)
+            p.openpolis_id = None
+            p.save()
+        return redirect(post['return_page'])
 
 def home(request):
     if request.user.is_authenticated():
@@ -380,4 +404,6 @@ def get_json_response(url):
     # You must (of course) use it when fetching the page though.
 
     response = urllib2.urlopen(url)
-    return json.loads(response.read())    
+    return json.loads(response.read())
+
+

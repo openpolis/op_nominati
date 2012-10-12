@@ -1,0 +1,67 @@
+{% if json_resp %}
+<table class="dup">
+    <tr>
+        <th class="persona">
+            Persona
+        </th>
+        <th class="fixwidth">
+            Data di nascita
+        </th>
+        <th class="fixwidth">
+            Luogo nascita
+        </th>
+        <th>
+            OP_Id
+        </th>
+        <th>
+            Incarichi
+        </th>
+        <th>
+            Merge
+        </th>
+    </tr>
+    {% for dup in json_resp %}
+        
+        <tr {% if dup.op_id == openpolis_id %} class="corrispondenza" {% endif %}>
+            <td class="persona">
+                <a href="{{ dup.op_link }}" target="_blank">{{ dup.first_name }}  {{  dup.last_name }}</a>
+            </td>
+            <td class="fixwidth {% if dup.birth_date == data_nascita %} active{% endif %}">
+
+                {{ dup.birth_date}}
+            </td>
+            <td  class="fixwidth {% if dup.birt_location == luogo_nascita %} active{% endif %}">
+
+                {{  dup.birt_location }}
+            </td>
+            <td>
+                {{ dup.op_id}}
+            </td>
+            <td>
+                <table>
+                    {% for inc in dup.charges %}
+                    <tr>
+                     <td>
+                         {{ inc|safe }}
+                     </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+
+            </td>
+            <td>
+                {% if dup.op_id %}
+                    {% if  dup.op_id == openpolis_id  %}
+                        <input type="button" value="Remove" onclick="removePersona({{ persona_id }})">
+                    {% else %}
+                        <input type="button" value="Merge" onclick="mergePersona({{ persona_id }},{{ dup.op_id}})">
+                    {% endif %}
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+    {% else   %}
+        No match
+{% endif %}
+
