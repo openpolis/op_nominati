@@ -57,6 +57,11 @@ class PersonaAdmin(admin.ModelAdmin):
     def similars_merge(self, obj):
 
         diz_encode = {'first_name': obj.nome, 'last_name': obj.cognome}
+
+        if obj.data_nascita:
+            diz_date = {'birth_date': obj.data_nascita}
+            diz_encode.update(diz_date)
+
         url = settings.OP_API_SIMILARITY_BASE_URL + "/?" + urlencode(diz_encode)
         json_resp = get_json_response(settings.OP_API_USER, settings.OP_API_PASS, url)
 
@@ -73,22 +78,24 @@ class PersonaAdmin(admin.ModelAdmin):
                 sim['charges'][i] = re.sub('(\sal[\s]*\d\d/\d\d/\d\d\d\d)\s(.*)','\\1 <br/> \\2',sim['charges'][i])
 
         t = loader.get_template('admin/nominati/Persona/duplicati_table.html')
-        c = Context({ 'json_resp': json_resp ,'persona_id':obj.pk, 'openpolis_id': obj.op_id, 'data_nascita': self.data_nascita_it(obj), 'luogo_nascita': string.strip(obj.luogo_nascita)})
+
+        #construct the context dict based on Persona's data then pass it to the template
+        context_dict = { 'json_resp': json_resp ,'persona_id':obj.pk}
+        if obj.op_id is not None:
+            openpolis_id = {'openpolis_id': obj.op_id}
+            context_dict.update(openpolis_id)
+        if obj.data_nascita is not None:
+            data_nascita = {'data_nascita': self.data_nascita_it(obj)}
+            context_dict.update(data_nascita)
+        if obj.luogo_nascita is not None:
+            luogo_nascita = {'luogo_nascita': string.strip(obj.luogo_nascita)}
+            context_dict.update(luogo_nascita)
+
+        c = Context(context_dict)
         return t.render(c)
 
 
     similars_merge.allow_tags = True
-
-
-
-    def similars_link(self, obj):
-        if obj.openpolis_n_similars == None:
-            return ''
-        url = "http://api.openpolis.it/op/1.0/similar_politicians/"
-        url += "?first_name=%s&last_name=%s" % (obj.nome, obj.cognome)
-        return '<a href="%s" onclick="return showAddAnotherPopup(this);">controlla</a>' % url
-    similars_link.allow_tags = True
-
 
 admin.site.register(Comparto)
 admin.site.register(Regione)
