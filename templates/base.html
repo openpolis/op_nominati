@@ -17,35 +17,38 @@
 
 </head>
 
-<body>
+<body class="{% block body_class %}{% endblock %}">
 
 {% block sidebar %}
 {%  endblock %}
 
+<!-- Container -->
+<div id="container">
 
-<div id="header">
-    {% block header %}
-        {% if user.is_authenticated %}
-            <div >
-                <a href="{% url nominati_logout %}" id="">Logout</a><BR>
-                <a href="{% url nominati_home %}">Torna alla home</a>
-            </div>
-        {% endif %}
-    {% endblock %}
+    <div id="header">
+        {% block header %}
+            {% if user.is_authenticated %}
+                <div >
+                    <a href="{% url nominati_logout %}" id="">Logout</a><BR>
+                    <a href="{% url nominati_home %}">Torna alla home</a>
+                </div>
+            {% endif %}
+        {% endblock %}
     </div>
 
-
-<div id="content">
-    {% block content %}{% endblock %}
+    <div id="content">
+        {% block content %}{% endblock %}
+    </div>
+    <div id="footer">
+        {% block footer %}
+            {% if user.is_authenticated %}
+                <a href="{% url nominati_home %}">Torna alla home</a>
+            {% endif %}
+        {% endblock %}
+    </div>
 </div>
 
-<div id="footer">
-    {% block footer %}
-        {% if user.is_authenticated %}
-            <a href="{% url nominati_home %}">Torna alla home</a>
-        {% endif %}
-    {% endblock %}
-</div>
+
 
 {% block js_footer %}
 {% endblock %}
