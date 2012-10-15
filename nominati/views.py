@@ -360,11 +360,16 @@ class RemovePersona_OP(View):
             p.save()
         return redirect(post['return_page'])
 
-def home(request):
-    if request.user.is_authenticated():
-        return render_to_response('nominati/home.html')
-    else:
-        return redirect('login/?next=/')
+
+class NominatiHome(AccessControlView, TemplateView):
+
+    template_name = "nominati/home.html"
+    def get_context_data(self, **kwargs):
+        if self.request.user.is_authenticated():
+            return render_to_response('nominati/home.html')
+        else:
+            return redirect('login/?next=/')
+
 
 def check_similars_views(request, object_id):
     if not (request.user.is_authenticated() and request.user.is_staff):

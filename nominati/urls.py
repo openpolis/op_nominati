@@ -3,12 +3,12 @@ from django.contrib import admin
 from django.contrib import databrowse
 
 from nominati.models import *
-from nominati.views import EnteDetailView, EnteListView, EnteJSONListView, RegioneListView, RegioneDetailView, NazioneView, MergePersona_OP, RemovePersona_OP
+from nominati.views import EnteDetailView, EnteListView, EnteJSONListView, RegioneListView, RegioneDetailView, NazioneView, MergePersona_OP, RemovePersona_OP, NominatiHome
 
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^$', "nominati.views.home", name="nominati_home"),
+    url(r'^$', NominatiHome.as_view(), name="nominati_home"),
     url(r'^regioni/$', RegioneListView.as_view(), name="nominati_regione_list"),
     url(r'^regioni/(?P<pk>\d+)$', RegioneDetailView.as_view(), name="nominati_regione_detail"),
     url(r'^regioni/(?P<pk>\d+)?tipo=(?P<tipo>\w+)$', RegioneDetailView.as_view(), name="nominati_regione_tipologie"),
