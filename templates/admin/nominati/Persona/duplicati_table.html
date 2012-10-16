@@ -52,9 +52,9 @@
             <td>
                 {% if dup.op_id %}
                     {% if  dup.op_id == openpolis_id  %}
-                        <input type="button" value="Remove" onclick="removePersona({{ persona_id }})">
+                        <input type="button" value="Remove" onclick="removePersona('{{ persona_id }}')">
                     {% else %}
-                        <input type="button" value="Merge" onclick="mergePersona({{ persona_id }},{{ dup.op_id}})">
+                        <input type="button" value="Merge" onclick="mergePersona('{{ persona_id }}','{{ dup.op_id}}','{{ dup.birt_location }}','{{ dup.birth_date_eng }}')">
                     {% endif %}
                 {% endif %}
             </td>

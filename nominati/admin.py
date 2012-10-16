@@ -50,7 +50,6 @@ class PersonaAdmin(admin.ModelAdmin):
     def data_nascita_it(self, obj):
         return '{0}/{1}/{2}'.format(obj.data_nascita.day, obj.data_nascita.month, obj.data_nascita.year)
 
-       #return obj.data_nascita.strftime("%d/%m/%Y")
 
     data_nascita_it.short_description = "Data nascita"
 
@@ -73,6 +72,7 @@ class PersonaAdmin(admin.ModelAdmin):
             if sim['birth_date'] is not None and sim['birth_date'] !='':
                 date = datetime.strptime(sim['birth_date'],"%Y-%m-%d %H:%M:%S")
                 sim['birth_date'] = '{0}/{1}/{2}'.format(date.day, date.month, date.year)
+                sim['birth_date_eng'] = '{0}-{1}-{2}'.format(date.year, date.month, date.day)
 
             for i in range(0,len(sim['charges'])):
                 sim['charges'][i] = re.sub('(\sal[\s]*\d\d/\d\d/\d\d\d\d)\s(.*)','\\1 <br/> \\2',sim['charges'][i])

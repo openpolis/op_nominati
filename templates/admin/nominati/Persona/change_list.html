@@ -47,7 +47,7 @@
         }
 
         //Merge Persona: set op_id to the selected persona
-        function mergePersona(persona_id, openpolis_id){
+        function mergePersona(persona_id, openpolis_id, birth_location, birth_date){
             var result = confirm('Sei sicuro di voler fare il merge per questo Openpolis_id?');
             if(result==false)
                 return;
@@ -55,6 +55,8 @@
                 var submitForm = getNewSubmitForm();
                 createNewFormElement(submitForm, "persona_id", persona_id);
                 createNewFormElement(submitForm, "openpolis_id", openpolis_id);
+                createNewFormElement(submitForm, "birth_location", birth_location);
+                createNewFormElement(submitForm, "birth_date", birth_date);
                 createNewFormElement(submitForm, "return_page", document.URL);
                 createNewFormElement(submitForm,"csrfmiddlewaretoken", "{{ csrf_token }}")
                 submitForm.action= "/persona/merge_persona/";

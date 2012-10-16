@@ -342,8 +342,15 @@ class MergePersona_OP(View):
         if self.request.POST is not None:
             post = self.request.POST
             persona_id = post['persona_id']
+            birth_location = post['birth_location']
+            birth_date = post['birth_date']
+
             p = Persona.objects.get(pk=persona_id)
+            #scrive op_id, data e luogo di nascita se facciamo il merge
             p.openpolis_id = post['openpolis_id']
+            p.luogo_nascita = post['birth_location']
+            p.data_nascita = post['birth_date']
+
             p.save()
         return redirect(post['return_page'])
 
@@ -356,7 +363,10 @@ class RemovePersona_OP(View):
             post = self.request.POST
             persona_id = post['persona_id']
             p = Persona.objects.get(pk=persona_id)
+            #rimuove op_id, data e luogo di nascita se rimuoviamo la similarita'
             p.openpolis_id = None
+            p.data_nascita = None
+            p.luogo_nascita = None
             p.save()
         return redirect(post['return_page'])
 
