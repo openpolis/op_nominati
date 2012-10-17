@@ -1,6 +1,6 @@
 import string
 from django.contrib import admin
-from nominati.filters import HasOpenpolisIdListFilter
+from nominati.filters import HasOpenpolisIdListFilter, HasBirthDateListFilter, HasBirthLocationListFilter
 from nominati.utils import ImproveRawIdFieldsTabularInlineForm, ImproveRawIdFieldsStackedInlineForm
 from nominati.models import *
 from nominati.utils import get_json_response
@@ -44,7 +44,7 @@ class PersonaAdmin(admin.ModelAdmin):
     inlines = (IncaricoInline,)
     list_per_page = 10
     search_fields = ['^nome', '^cognome']
-    list_filter = ('openpolis_n_similars', HasOpenpolisIdListFilter)
+    list_filter = ('openpolis_n_similars', HasOpenpolisIdListFilter, HasBirthDateListFilter, HasBirthLocationListFilter)
     list_display = ('__unicode__', 'data_nascita_it','luogo_nascita','persona_incarichi', 'openpolis_id', 'similars_merge')
 
     def data_nascita_it(self, obj):
