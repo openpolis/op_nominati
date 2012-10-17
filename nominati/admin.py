@@ -45,13 +45,28 @@ class PersonaAdmin(admin.ModelAdmin):
     list_per_page = 10
     search_fields = ['^nome', '^cognome']
     list_filter = ('openpolis_n_similars', HasOpenpolisIdListFilter)
-    list_display = ('__unicode__', 'data_nascita_it','luogo_nascita', 'openpolis_id', 'similars_merge')
+    list_display = ('__unicode__', 'data_nascita_it','luogo_nascita','persona_incarichi', 'openpolis_id', 'similars_merge')
 
     def data_nascita_it(self, obj):
         return '{0}/{1}/{2}'.format(obj.data_nascita.day, obj.data_nascita.month, obj.data_nascita.year)
 
+    data_nascita_it.short_description = "Data nasc"
 
-    data_nascita_it.short_description = "Data nascita"
+    def persona_incarichi(self,obj):
+        incarichi = obj.incarichi
+
+        temp = []
+        for i in incarichi:
+            singolo_incarico = {'ente_nominante':i.ente_nominante_cf, 'partecipata': i.partecipata_cf}
+            temp.append(singolo_incarico)
+
+        t = loader.get_template('admin/nominati/Persona/incarichi_table.html')
+        context_dict = {'lista':temp}
+        c = Context(context_dict)
+        return t.render(c)
+    persona_incarichi.allow_tags = True
+
+    persona_incarichi.short_description = "Elenco Incarichi"
 
     def similars_merge(self, obj):
 

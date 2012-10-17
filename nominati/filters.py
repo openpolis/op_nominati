@@ -5,7 +5,7 @@ from django.contrib.admin import SimpleListFilter
 class HasOpenpolisIdListFilter(SimpleListFilter):
     # Human-readable title which will be displayed in the
     # right admin sidebar just above the filter options.
-    title = _('Has openpolis ID')
+    title = _('Has OP ID')
     parameter_name = 'has_op_id'
 
     def lookups(self, request, model_admin):

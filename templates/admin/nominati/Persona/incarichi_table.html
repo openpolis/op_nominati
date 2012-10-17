@@ -1,0 +1,17 @@
+<div class="elenco_incarichi">
+{% if lista %}
+    {% for i in lista%}
+        <div class="incarico">
+            <div class="partecipata">
+                <a href="/admin/nominati/partecipata/{{ i.partecipata.pk }}" target="_blank">{{ i.partecipata}}</a>
+            </div>
+            <div class="ente_nominante">
+                {{ i.ente_nominante}}
+            </div>
+        </div>
+    {% endfor %}
+{% else   %}
+    No match
+{% endif %}
+</div>
+

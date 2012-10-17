@@ -196,10 +196,10 @@ class Persona(models.Model):
 
     nome = models.CharField(max_length=64)
     cognome = models.CharField(max_length=64)
-    data_nascita = models.DateField(null=True, blank=True)
-    luogo_nascita = models.CharField(max_length=64, null=True, blank=True)
+    data_nascita = models.DateField(null=True, blank=True, verbose_name='Data di nascita')
+    luogo_nascita = models.CharField(max_length=64, null=True, blank=True,verbose_name='Luogo nasc')
     sesso = models.IntegerField(choices=SEX, blank=True)
-    openpolis_id = models.CharField(max_length=10, null=True, blank=True)
+    openpolis_id = models.CharField(max_length=10, null=True, blank=True, verbose_name='op_id')
     openpolis_n_similars = models.IntegerField(default=0,verbose_name=u"n_similars")
 
     @property
