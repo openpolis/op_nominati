@@ -85,7 +85,7 @@ class PersonaAdmin(admin.ModelAdmin):
         #format date and charges string for template visualization
         for sim in json_resp:
             if sim['birth_date'] is not None and sim['birth_date'] !='':
-                date = datetime.strptime(sim['birth_date'],"%Y-%m-%d %H:%M:%S")
+                date = datetime.strptime(sim['birth_date'],"%Y-%m-%dT%H:%M:%S")
                 sim['birth_date'] = '{0}/{1}/{2}'.format(date.day, date.month, date.year)
                 sim['birth_date_eng'] = '{0}-{1}-{2}'.format(date.year, date.month, date.day)
 
