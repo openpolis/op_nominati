@@ -190,6 +190,11 @@ LOGGING = {
             'handlers': ['console', 'logfile'],
             'level': 'DEBUG',
             'propagate': True,
-        }
+        },
+        'csvimport': {
+            'handlers': ['console', 'logfile'],
+            'level': 'DEBUG',
+            'propagate': True,
+            }
     }
 }
