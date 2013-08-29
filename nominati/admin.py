@@ -1,9 +1,9 @@
 import string
 from django.contrib import admin
 from nominati.filters import HasOpenpolisIdListFilter, HasBirthDateListFilter, HasBirthLocationListFilter
-from nominati.utils import ImproveRawIdFieldsTabularInlineForm, ImproveRawIdFieldsStackedInlineForm
+from nominati.utils.adminutils import ImproveRawIdFieldsTabularInlineForm, ImproveRawIdFieldsStackedInlineForm
 from nominati.models import *
-from nominati.utils import get_json_response
+from nominati.utils.adminutils import get_json_response
 from django.conf import settings
 from django.template import loader, Context
 from datetime import datetime
