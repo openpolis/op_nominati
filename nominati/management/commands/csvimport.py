@@ -49,6 +49,7 @@ class Command(BaseCommand):
     encoding = 'latin1'
     unicode_reader = None
     logger = logging.getLogger('csvimport')
+    errors_list = []
 
 
     def handle(self, *args, **options):
@@ -137,11 +138,13 @@ class Command(BaseCommand):
                     regione = Regione.objects.get(denominazione=r['REGIONE_PA'])
                 except ObjectDoesNotExist:
                     self.logger.error("%s: Regione non presente, impossibile aggiungere il record con cf: %s" % ( c, r['CODICE_FISCALE_PA']))
+                    self.errors_list.append({'line':c,'ente_cf':cf_ente, 'partecipata_cf': cf_partecipata,'type':'Regione non presente'})
                 else:
                     try:
                         comparto = Comparto.objects.get(nome=r['COMPARTO_PA'])
                     except ObjectDoesNotExist:
                         self.logger.error("%s: Comparto non presente, impossibile aggiungere il record con cf: %s" % ( c, r['CODICE_FISCALE_PA']))
+                        self.errors_list.append({'line':c,'ente_cf':cf_ente, 'partecipata_cf': cf_partecipata,'type':'Comparto non presente'})
                     else:
                         # insert new Ente obj
                         self.logger.info("%s: Ente inserito: %s" % ( cf_ente,r['DENOMINAZIONE_PA']))
@@ -174,6 +177,7 @@ class Command(BaseCommand):
                             tipologia_partecipata = TipologiaPartecipata.objects.get(denominazione=r['TIPOLOGIA SOCIETA'])
                         except ObjectDoesNotExist:
                             self.logger.error("%s: Tipologia Partecipata non presente, impossibile aggiungere il record con cf: %s" % ( c, r['CODICE_FISCALE_PA']))
+                            self.errors_list.append({'line':c,'ente_cf':cf_ente, 'partecipata_cf': cf_partecipata,'type':'Tipologia Partecipata non presente'})
                         else:
                             # inserts the new partecipata
                             partecipata.tipologia_partecipata = tipologia_partecipata
@@ -182,6 +186,8 @@ class Command(BaseCommand):
                             correct_partecipata = True
                     else:
                         self.logger.error("%s: Macro Tipologia non presente, impossibile aggiungere il record con cf: %s" % ( c, r['CODICE_FISCALE_PA']))
+                        self.errors_list.append({'line':c,'ente_cf':cf_ente, 'partecipata_cf': cf_partecipata,'type':'Macro Tipologia non presente'})
+                        
                 else:
                     correct_partecipata = True
 
@@ -216,6 +222,6 @@ class Command(BaseCommand):
                         partecipazione.dichiarazione_inviata = r['DICHIARAZIONE INVIATA']
                         partecipazione.save()
                         self.logger.info("%s: Partecipazione inserita: %s" % ( c,r['DENOMINAZIONE_CONS_SOC']))
-                        
+
 
             c += 1
