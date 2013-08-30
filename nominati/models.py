@@ -11,10 +11,10 @@ from django.db.models.query_utils import Q
 from datetime import datetime
 
 class Comparto(models.Model):
-    nome = models.CharField(max_length=255)
+    denominazione = models.CharField(max_length=255)
 
     def __unicode__(self):
-        return self.nome
+        return self.denominazione
 
     class Meta:
         verbose_name_plural = u'Comparti'
@@ -225,10 +225,10 @@ class Persona(models.Model):
         unique_together = ('nome', 'cognome', 'data_nascita', 'luogo_nascita')
 
 class Regione(models.Model):
-    nome = models.CharField(max_length=32)
+    denominazione = models.CharField(max_length=32)
 
     def __unicode__(self):
-        return self.nome
+        return self.denominazione
 
     @property
     def n_partecipate(self):

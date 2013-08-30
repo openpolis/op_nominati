@@ -92,6 +92,10 @@ class Command(BaseCommand):
             exit(1)
 
 
+    def handle_rapp(self, *args, **options):
+        exit(1)
+
+
     def handle_part(self, *args, **options):
 
         c = 0
@@ -130,12 +134,12 @@ class Command(BaseCommand):
                 ente.denominazione = r['DENOMINAZIONE_PA']
 
                 try:
-                    regione = Regione.objects.get(nome=r['REGIONE_PA'])
+                    regione = Regione.objects.get(denominazione=r['REGIONE_PA'])
                 except ObjectDoesNotExist:
                     self.logger.error("%s: Regione non presente, impossibile aggiungere il record con cf: %s" % ( c, r['CODICE_FISCALE_PA']))
                 else:
                     try:
-                        comparto = Comparto.objects.get(denominazione=r['COMPARTO_PA'])
+                        comparto = Comparto.objects.get(nome=r['COMPARTO_PA'])
                     except ObjectDoesNotExist:
                         self.logger.error("%s: Comparto non presente, impossibile aggiungere il record con cf: %s" % ( c, r['CODICE_FISCALE_PA']))
                     else:
@@ -183,21 +187,35 @@ class Command(BaseCommand):
 
                 # if ente is correct and partecipata is correct, inserts the new partecipazioni data
                 if correct_partecipata:
-                    # Totale:
-                    # COMPARTO_PA;REGIONE_PA;CODICE_FISCALE_PA;DENOMINAZIONE_PA;
-                    # CODICE_FISCALE_CONS_SOC;DENOMINAZIONE_CONS_SOC;
-                    # MACRO TIPOLOGIA;TIPOLOGIA SOCIETA;
-                    # ONERE COMPLESSIVO;PERCENTUALE PARTECIPAZIONE;DICHIARAZIONE INVIATA
 
-                    partecipazione = Partecipazione()
-                    partecipazione.anno = options['year']
-                    partecipazione.partecipata_cf = partecipata
-                    partecipazione.ente_cf = ente
-                    partecipazione.onere_complessivo = r['ONERE COMPLESSIVO']
-                    partecipazione.percentuale_partecipazione = r['PERCENTUALE PARTECIPAZIONE']
-                    partecipazione.dichiarazione_inviata = r['DICHIARAZIONE INVIATA']
-                    partecipazione.save()
-                    self.logger.info("%s: Partecipazione inserita: %s" % ( c,r['DENOMINAZIONE_CONS_SOC']))
-
+                    partecipazione = None
+                    try:
+                        partecipazione = \
+                            Partecipazione.objects. \
+                                get(options['year'],
+                                    ente_cf=ente,
+                                    partecipata_cf=partecipata
+                            )
+                    except ObjectDoesNotExist:
+                        pass
+                    # if update is true we update existing records about partecipazione
+                    if options['update'] is True and partecipazione is not None:
+                        partecipazione.onere_complessivo = r['ONERE COMPLESSIVO']
+                        partecipazione.percentuale_partecipazione = r['PERCENTUALE PARTECIPAZIONE']
+                        partecipazione.dichiarazione_inviata = r['DICHIARAZIONE INVIATA']
+                        partecipazione.save()
+                        self.logger.info("%s: Partecipazione aggiornata: %s" % ( c,r['DENOMINAZIONE_CONS_SOC']))
+                    else:
+                        # if the obj doesnt exists the new partecipazione is created
+                        partecipazione = Partecipazione()
+                        partecipazione.anno = options['year']
+                        partecipazione.partecipata_cf = partecipata
+                        partecipazione.ente_cf = ente
+                        partecipazione.onere_complessivo = r['ONERE COMPLESSIVO']
+                        partecipazione.percentuale_partecipazione = r['PERCENTUALE PARTECIPAZIONE']
+                        partecipazione.dichiarazione_inviata = r['DICHIARAZIONE INVIATA']
+                        partecipazione.save()
+                        self.logger.info("%s: Partecipazione inserita: %s" % ( c,r['DENOMINAZIONE_CONS_SOC']))
+                        
 
             c += 1
