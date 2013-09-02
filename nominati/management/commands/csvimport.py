@@ -3,21 +3,19 @@ from _csv import QUOTE_MINIMAL, QUOTE_NONE
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand, CommandError, LabelCommand
 from django.conf import settings
-import urllib2
-from django.utils.http import urlencode
-import codecs
 import csv
 from optparse import make_option
 import logging
 from nominati import utils
 from nominati.models import Persona, Ente, Partecipata, Partecipazione, Regione, Comparto, TipologiaPartecipata
 import pprint
-from nominati.utils import UnicodeDictWriter
+
 
 
 class Command(BaseCommand):
     """
     Task per importare la lista di partecipazioni dal CSV del Ministero Pubblica Amministrazione
+    e dati dal CPT
     """
 
     help = "Import dati partecipazioni da CSV del Ministero PA"
@@ -25,12 +23,12 @@ class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option('--csv-file',
                     dest='csvfile',
-                    default='./partecipazioni.csv',
+                    default='',
                     help='Select csv file'),
         make_option('--type',
                     dest='type',
                     default=None,
-                    help='Type of import: part|rapp'),
+                    help='Type of import: part|cpt_part'),
         make_option('--year',
                     dest='year',
                     help='Year of import: eg.2012'),
@@ -47,7 +45,6 @@ class Command(BaseCommand):
     )
 
     csv_file = ''
-    encoding = 'latin1'
     unicode_reader = None
     unicode_writer = None
     logger = logging.getLogger('csvimport')
@@ -60,18 +57,64 @@ class Command(BaseCommand):
             self.logger.error("Csv file is needed\n")
             exit(1)
 
-        if options['year'] is None:
-            self.logger.error("Year value is needed\n")
+        self.csv_file = options['csvfile']
+
+        if options['type'] == 'part':
+            self.handle_part(*args, **options)
+
+        elif options['type'] == 'cpt_part':
+            self.handle_cptpart(*args, **options)
+
+        else:
+            self.logger.error("Wrong type %s. Select among part,cpt_part." % options['type'])
             exit(1)
 
-        self.csv_file = options['csvfile']
+
+    def handle_cptpart(self, *args, **options):
+
+        if self.csv_file=='':
+            self.csv_file = './Anagrafica_Enti_'+options['year']+'.csv'
+
         self.logger.info('CSV FILE "%s"\n' % self.csv_file )
 
         # read csv file
         try:
             self.unicode_reader = \
                 utils.UnicodeDictReader(open(self.csv_file, 'rU'),
-                                        encoding=self.encoding,
+                                        encoding='utf-8',
+                                        dialect="excel"
+                                        )
+        except IOError:
+            self.logger.error("It was impossible to open file %s\n" % self.csv_file)
+            exit(1)
+        except csv.Error, e:
+            self.logger.error("CSV error while reading %s: %s\n" % (self.csv_file, e.message))
+
+
+
+        c = 0
+
+        self.logger.info("Inizio import da %s" % self.csv_file)
+
+        for r in self.unicode_reader:
+            pprint.pprint(r)
+            
+
+        exit(1)
+
+
+    def handle_part(self, *args, **options):
+
+        if self.csv_file=='':
+            self.csv_file = './partecipazioni.csv'
+
+        self.logger.info('CSV FILE "%s"\n' % self.csv_file )
+
+        # read csv file
+        try:
+            self.unicode_reader = \
+                utils.UnicodeDictReader(open(self.csv_file, 'rU'),
+                                        encoding='latin1',
                                         dialect="excel",
                                         escapechar  = None,
                                         lineterminator = '\r\n',
@@ -83,23 +126,6 @@ class Command(BaseCommand):
             exit(1)
         except csv.Error, e:
             self.logger.error("CSV error while reading %s: %s\n" % (self.csv_file, e.message))
-
-        if options['type'] == 'part':
-            self.handle_part(*args, **options)
-
-        elif options['type'] == 'rapp':
-            self.handle_rapp(*args, **options)
-
-        else:
-            self.logger.error("Wrong type %s. Select among part,rapp." % options['type'])
-            exit(1)
-
-
-    def handle_rapp(self, *args, **options):
-        exit(1)
-
-
-    def handle_part(self, *args, **options):
 
         c = 0
 

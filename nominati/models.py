@@ -19,6 +19,27 @@ class Comparto(models.Model):
     class Meta:
         verbose_name_plural = u'Comparti'
 
+class Cpt_Settore(models.Model):
+    denominazione = models.CharField(max_length=255)
+    codice = models.CharField(max_length=10)
+
+class Cpt_Settore_Partecipata(models.Model):
+    partecipata = models.ForeignKey('Partecipata', on_delete=models.SET_DEFAULT, null=False, default='')
+    settore = models.ForeignKey('Cpt_Settore', on_delete=models.SET_DEFAULT, null=False, default='')
+
+class Cpt_Categoria(models.Model):
+    denominazione = models.CharField(max_length=255)
+    codice = models.CharField(max_length=3)
+
+class Cpt_Sottocategoria(models.Model):
+    denominazione = models.CharField(max_length=255)
+    codice = models.CharField(max_length=1)
+    categoria = models.ForeignKey('Cpt_Categoria', on_delete=models.CASCADE, null=False)
+
+class Cpt_Sottotipo(models.Model):
+    denominazione = models.CharField(max_length=255)
+    codice = models.CharField(max_length=2)
+    sottocategoria = models.ForeignKey('Cpt_Sottocategoria', on_delete=models.CASCADE, null=False)
 
 class Partecipata(models.Model):
     codice_fiscale = models.CharField(max_length=11, primary_key=True)
@@ -29,11 +50,24 @@ class Partecipata(models.Model):
         ('FONDAZIONE', 'Fondazione')
     )
 
+    UNIVERSO_RIFERIMENTO = Choices(
+        ('PA', 'PA'),
+        ('ExtraPA', 'ExtraPA')
+    )
+
     macro_tipologia = models.CharField(max_length=32, choices=MACRO_TIPOLOGIA)
     tipologia_partecipata = models.ForeignKey('TipologiaPartecipata', on_delete=models.PROTECT)
     competenza_partecipata = models.ForeignKey('CompetenzaPartecipata', null=True, on_delete=models.SET_NULL)
     finalita_partecipata = models.ForeignKey('FinalitaPartecipata', null=True, on_delete=models.SET_NULL)
     url = models.URLField(blank=True, null=True)
+    indirizzo = models.CharField(max_length=100, null=True)
+    cap = models.CharField(max_length=5, null=True)
+    comune = models.CharField(max_length=50, null=True)
+    provincia = models.CharField(max_length=3, null=True)
+    regione = models.ForeignKey('Regione', on_delete=models.SET_NULL, null=True)
+    cpt_universo_riferimento = models.CharField(max_length=8, choices=UNIVERSO_RIFERIMENTO, null=True)
+    cpt_primo_anno_rilevazione = models.CharField(max_length=5, null=True, default=None)
+    cpt_ultimo_anno_rilevazione = models.CharField(max_length=5, null=True, default=None)
 
     @cached_property
     def ultimo_bilancio(self):
