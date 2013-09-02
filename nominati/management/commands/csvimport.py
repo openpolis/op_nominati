@@ -5,13 +5,14 @@ from django.core.management.base import BaseCommand, CommandError, LabelCommand
 from django.conf import settings
 import urllib2
 from django.utils.http import urlencode
+import codecs
 import csv
 from optparse import make_option
 import logging
 from nominati import utils
 from nominati.models import Persona, Ente, Partecipata, Partecipazione, Regione, Comparto, TipologiaPartecipata
 import pprint
-
+from nominati.utils import UnicodeDictWriter
 
 
 class Command(BaseCommand):
@@ -48,6 +49,7 @@ class Command(BaseCommand):
     csv_file = ''
     encoding = 'latin1'
     unicode_reader = None
+    unicode_writer = None
     logger = logging.getLogger('csvimport')
     errors_list = []
 
@@ -68,7 +70,7 @@ class Command(BaseCommand):
         # read csv file
         try:
             self.unicode_reader = \
-                utils.UnicodeDictReader(open(self.csv_file, 'r'),
+                utils.UnicodeDictReader(open(self.csv_file, 'rU'),
                                         encoding=self.encoding,
                                         dialect="excel",
                                         escapechar  = None,
@@ -138,14 +140,16 @@ class Command(BaseCommand):
                     regione = Regione.objects.get(denominazione=r['REGIONE_PA'])
                 except ObjectDoesNotExist:
                     self.logger.error("%s: Regione non presente, impossibile aggiungere il record con cf: %s" % ( c, r['CODICE_FISCALE_PA']))
-                    self.errors_list.append({'line':c,'ente_cf':cf_ente, 'partecipata_cf': cf_partecipata,'type':'Regione non presente'})
+                    self.errors_list.append({'line':str(c),'ente_cf':str(cf_ente), 'partecipata_cf': str(cf_partecipata),'type':'Regione non presente', 'data': r['REGIONE_PA']})
                 else:
+                    ente.regione = regione
                     try:
-                        comparto = Comparto.objects.get(nome=r['COMPARTO_PA'])
+                        comparto = Comparto.objects.get(denominazione=r['COMPARTO_PA'])
                     except ObjectDoesNotExist:
                         self.logger.error("%s: Comparto non presente, impossibile aggiungere il record con cf: %s" % ( c, r['CODICE_FISCALE_PA']))
-                        self.errors_list.append({'line':c,'ente_cf':cf_ente, 'partecipata_cf': cf_partecipata,'type':'Comparto non presente'})
+                        self.errors_list.append({'line':str(c),'ente_cf':str(cf_ente), 'partecipata_cf': str(cf_partecipata),'type':'Comparto non presente','data': r['COMPARTO_PA']})
                     else:
+                        ente.comparto=comparto
                         # insert new Ente obj
                         self.logger.info("%s: Ente inserito: %s" % ( cf_ente,r['DENOMINAZIONE_PA']))
                         ente.save()
@@ -173,11 +177,27 @@ class Command(BaseCommand):
                         partecipata.macro_tipologia = macro_tipologia
 
                         # checks for tipologia partecipata
+                        r_tipologia_partecipata=r['TIPOLOGIA SOCIETA']
+
+                        # correction for errors in the csv
+                        if r_tipologia_partecipata == 'Societ� S.r.l.'.decode('utf-8') \
+                            or r_tipologia_partecipata == 'Societï¿½ S.r.l.'.decode('utf-8'):
+                            r_tipologia_partecipata = 'Società S.r.l.'
+                        if r_tipologia_partecipata == 'Societ� S.p.a.'.decode('utf-8')\
+                            or r_tipologia_partecipata == 'Societï¿½ S.p.a.':
+                            r_tipologia_partecipata = 'Società S.p.a.'
+                        if r_tipologia_partecipata == 'Societï¿½ di Trasformazione Urbana'.decode('utf-8'):
+                            r_tipologia_partecipata = 'Società di Trasformazione Urbana'
+                        if r_tipologia_partecipata == 'Azienda Speciale'.decode('utf-8'):
+                            r_tipologia_partecipata = 'Azienda speciale'
+                        if r_tipologia_partecipata == 'ALTRO TIPO DI SOCIETA\''.decode('utf-8'):
+                            r_tipologia_partecipata = 'Altro tipo di società'
+
                         try:
-                            tipologia_partecipata = TipologiaPartecipata.objects.get(denominazione=r['TIPOLOGIA SOCIETA'])
+                            tipologia_partecipata = TipologiaPartecipata.objects.get(denominazione=r_tipologia_partecipata)
                         except ObjectDoesNotExist:
                             self.logger.error("%s: Tipologia Partecipata non presente, impossibile aggiungere il record con cf: %s" % ( c, r['CODICE_FISCALE_PA']))
-                            self.errors_list.append({'line':c,'ente_cf':cf_ente, 'partecipata_cf': cf_partecipata,'type':'Tipologia Partecipata non presente'})
+                            self.errors_list.append({'line':str(c),'ente_cf':str(cf_ente), 'partecipata_cf': str(cf_partecipata),'type':'Tipologia Partecipata non presente', 'data':r_tipologia_partecipata})
                         else:
                             # inserts the new partecipata
                             partecipata.tipologia_partecipata = tipologia_partecipata
@@ -186,8 +206,8 @@ class Command(BaseCommand):
                             correct_partecipata = True
                     else:
                         self.logger.error("%s: Macro Tipologia non presente, impossibile aggiungere il record con cf: %s" % ( c, r['CODICE_FISCALE_PA']))
-                        self.errors_list.append({'line':c,'ente_cf':cf_ente, 'partecipata_cf': cf_partecipata,'type':'Macro Tipologia non presente'})
-                        
+                        self.errors_list.append({'line':str(c),'ente_cf':str(cf_ente), 'partecipata_cf': str(cf_partecipata),'type':'Macro Tipologia non presente', 'data':macro_tipologia})
+
                 else:
                     correct_partecipata = True
 
@@ -198,12 +218,14 @@ class Command(BaseCommand):
                     try:
                         partecipazione = \
                             Partecipazione.objects. \
-                                get(options['year'],
+                                get(anno=options['year'],
                                     ente_cf=ente,
                                     partecipata_cf=partecipata
                             )
+
                     except ObjectDoesNotExist:
                         pass
+
                     # if update is true we update existing records about partecipazione
                     if options['update'] is True and partecipazione is not None:
                         partecipazione.onere_complessivo = r['ONERE COMPLESSIVO']
@@ -212,16 +234,41 @@ class Command(BaseCommand):
                         partecipazione.save()
                         self.logger.info("%s: Partecipazione aggiornata: %s" % ( c,r['DENOMINAZIONE_CONS_SOC']))
                     else:
-                        # if the obj doesnt exists the new partecipazione is created
-                        partecipazione = Partecipazione()
-                        partecipazione.anno = options['year']
-                        partecipazione.partecipata_cf = partecipata
-                        partecipazione.ente_cf = ente
-                        partecipazione.onere_complessivo = r['ONERE COMPLESSIVO']
-                        partecipazione.percentuale_partecipazione = r['PERCENTUALE PARTECIPAZIONE']
-                        partecipazione.dichiarazione_inviata = r['DICHIARAZIONE INVIATA']
-                        partecipazione.save()
-                        self.logger.info("%s: Partecipazione inserita: %s" % ( c,r['DENOMINAZIONE_CONS_SOC']))
-
+                        if options['update'] is False and partecipazione is not None:
+                            self.logger.error("%s: Partecipazione gia presente, impossibile aggiungere il record con cf: %s" % ( c, r['CODICE_FISCALE_PA']))
+                            self.errors_list.append({'line':str(c),'ente_cf':str(cf_ente), 'partecipata_cf': str(cf_partecipata),'type':'Partecipazione gia presente', 'data':''})
+                        else:
+                            
+                            # if the obj doesnt exists the new partecipazione is created
+                            partecipazione = Partecipazione()
+                            partecipazione.anno = options['year']
+                            partecipazione.partecipata_cf = partecipata
+                            partecipazione.ente_cf = ente
+                            partecipazione.onere_complessivo = r['ONERE COMPLESSIVO']
+                            partecipazione.percentuale_partecipazione = r['PERCENTUALE PARTECIPAZIONE']
+                            partecipazione.dichiarazione_inviata = r['DICHIARAZIONE INVIATA']
+                            partecipazione.save()
+                            self.logger.info("%s: Partecipazione inserita: %s" % ( c,r['DENOMINAZIONE_CONS_SOC']))
 
             c += 1
+
+        if len(self.errors_list)>0:
+            self.logger.info("Inizio a scrivere il file di log degli errori part_error.log")
+            self.unicode_writer = \
+                utils.UnicodeDictWriter(open("part_error.log", 'w'),
+                                        fieldnames = ['line','ente_cf','partecipata_cf','type','data'],
+                                        encoding=self.encoding,
+                                        dialect="excel",
+                                        escapechar  = "\\",
+                                        lineterminator = '\r\n',
+                                        quotechar='"',
+                                        delimiter=',',
+                                        quoting=QUOTE_MINIMAL)
+
+
+            self.unicode_writer.writerows(self.errors_list)
+
+            self.logger.info("Fine scrittura")
+
+
+
