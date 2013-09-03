@@ -23,7 +23,7 @@ class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option('--csv-file',
                     dest='csvfile',
-                    default='',
+                    default=None,
                     help='Select csv file'),
         make_option('--type',
                     dest='type',
@@ -47,6 +47,7 @@ class Command(BaseCommand):
     csv_file = ''
     unicode_reader = None
     unicode_writer = None
+    encoding = None
     logger = logging.getLogger('csvimport')
     errors_list = []
 
@@ -72,16 +73,13 @@ class Command(BaseCommand):
 
     def handle_cptpart(self, *args, **options):
 
-        if self.csv_file=='':
-            self.csv_file = './Anagrafica_Enti_'+options['year']+'.csv'
-
         self.logger.info('CSV FILE "%s"\n' % self.csv_file )
-
+        self.encoding='utf-8'
         # read csv file
         try:
             self.unicode_reader = \
                 utils.UnicodeDictReader(open(self.csv_file, 'rU'),
-                                        encoding='utf-8',
+                                        encoding=self.encoding,
                                         dialect="excel"
                                         )
         except IOError:
@@ -90,16 +88,90 @@ class Command(BaseCommand):
         except csv.Error, e:
             self.logger.error("CSV error while reading %s: %s\n" % (self.csv_file, e.message))
 
-
-
         c = 0
-
         self.logger.info("Inizio import da %s" % self.csv_file)
+        
+        # Totale
+        # CPT_Anno_Produzione_BancaDati
+        # DESCRIZIONE_ENTE
+        # IDFISC_ENTE
+        # INDIRIZZO_ENTE
+        # CAP
+        # COMUNE
+        # PROVINCIA
+        # REGIONE
+        # CPT_Universo_riferimento
+        # CPT_COD_CATEGORIA
+        # CPT_DESCR_CATEGORIA
+        # CPT_COD_SOTTOTIPO
+        # CPT_DESCR_SOTTOTIPO
+        # CPT_Primo_Anno_Rilevazione
+        # CPT_Ultimo_Anno_Rilevazione
+        # CPT_Settore01 ... CPT_Settore12
 
         for r in self.unicode_reader:
-            pprint.pprint(r)
-            
+            existing_partecipata = False
 
+            # zero padding for codice fiscale
+            cf_partecipata = r['IDFISC_ENTE'].zfill(11)
+
+            #  if partecipata is not in the db, insert new Partecipata
+            regione = None
+
+            nome_regione = r['REGIONE']
+
+            # fixes for CSV errors
+            if nome_regione == 'Friuli Venezia Giulia':
+                nome_regione='FRIULI-VENEZIA GIULIA'
+            if nome_regione == 'Emilia Romagna':
+                nome_regione='EMILIA-ROMAGNA'
+            if nome_regione == 'Provincia Autonoma di Bolzano' or nome_regione == 'Provincia Autonoma di Trento':
+                nome_regione='TRENTINO-ALTO ADIGE'
+
+            try:
+                regione = Regione.objects.get(denominazione=nome_regione.upper())
+            except ObjectDoesNotExist:
+                self.logger.error("%s: Regione non presente, impossibile aggiungere il record con cf: %s" % ( c, cf_partecipata))
+                self.errors_list.append({'line':str(c),'partecipata_cf': str(cf_partecipata),'type':'Regione non presente', 'data': r['REGIONE']})
+            else:
+
+                partecipata, partecipata_created = Partecipata.objects.get_or_create(
+                    codice_fiscale=cf_partecipata,
+                    defaults={
+                        'denominazione':r['DESCRIZIONE_ENTE'],
+                        'indirizzo': r['INDIRIZZO_ENTE'],
+                        'comune': r['COMUNE'],
+                        'cap': r['CAP'],
+                        'provincia': r['PROVINCIA'],
+                        'regione': regione
+                    }
+                )
+
+                if partecipata_created is True:
+                    self.logger.info("%s: Partecipata inserita: %s" % ( cf_partecipata,r['DESCRIZIONE_ENTE']))
+                else:
+                    if options['update']:
+
+                        partecipata.denominazione = r['DESCRIZIONE_ENTE']
+                        partecipata.indirizzo = r['INDIRIZZO_ENTE']
+                        partecipata.comune = r['COMUNE']
+                        partecipata.cap = r['CAP']
+                        partecipata.provincia = r['PROVINCIA']
+                        partecipata.regione = regione
+                        partecipata.save()
+
+                        self.logger.info("%s: Partecipata presente aggiornata: %s" % ( cf_partecipata,r['DESCRIZIONE_ENTE']))
+                    else:
+                        self.logger.info("%s: Partecipata presente: %s" % ( cf_partecipata,r['DESCRIZIONE_ENTE']))
+
+
+
+
+            c=+1
+            if c >= 100:
+                break
+
+        self.write_errorlog("cptpart_error.log", fieldnames = ['line','partecipata_cf','type','data'])
         exit(1)
 
 
@@ -109,12 +181,12 @@ class Command(BaseCommand):
             self.csv_file = './partecipazioni.csv'
 
         self.logger.info('CSV FILE "%s"\n' % self.csv_file )
-
+        self.encoding='latin1'
         # read csv file
         try:
             self.unicode_reader = \
                 utils.UnicodeDictReader(open(self.csv_file, 'rU'),
-                                        encoding='latin1',
+                                        encoding=self.encoding,
                                         dialect="excel",
                                         escapechar  = None,
                                         lineterminator = '\r\n',
@@ -128,6 +200,8 @@ class Command(BaseCommand):
             self.logger.error("CSV error while reading %s: %s\n" % (self.csv_file, e.message))
 
         c = 0
+        added_enti = 0
+        added_partecipata = 0
 
         if options['delete']:
             self.logger.info("Erasing the precedently stored data...")
@@ -161,6 +235,7 @@ class Command(BaseCommand):
                 ente = Ente()
                 ente.codice_fiscale = cf_ente
                 ente.denominazione = r['DENOMINAZIONE_PA']
+                added_enti+=1
 
                 try:
                     regione = Regione.objects.get(denominazione=r['REGIONE_PA'])
@@ -230,6 +305,7 @@ class Command(BaseCommand):
                             partecipata.save()
                             self.logger.info("%s: Partecipata inserita: %s" % ( cf_partecipata,r['DENOMINAZIONE_CONS_SOC']))
                             correct_partecipata = True
+                            added_partecipata+=1
                     else:
                         self.logger.error("%s: Macro Tipologia non presente, impossibile aggiungere il record con cf: %s" % ( c, r['CODICE_FISCALE_PA']))
                         self.errors_list.append({'line':str(c),'ente_cf':str(cf_ente), 'partecipata_cf': str(cf_partecipata),'type':'Macro Tipologia non presente', 'data':macro_tipologia})
@@ -278,11 +354,22 @@ class Command(BaseCommand):
 
             c += 1
 
+            self.write_errorlog("part_error.log", fieldnames = ['line','ente_cf','partecipata_cf','type','data'])
+
+            if added_partecipata > 0:
+                self.logger.info("Aggiunte %s nuove partecipate", added_partecipata)
+            if added_enti> 0:
+                self.logger.info("Aggiunti %s nuovi enti", added_enti)
+
+
+
+    def write_errorlog(self, filename, fieldnames):
+
         if len(self.errors_list)>0:
-            self.logger.info("Inizio a scrivere il file di log degli errori part_error.log")
+            self.logger.info("Inizio a scrivere il file "+filename)
             self.unicode_writer = \
-                utils.UnicodeDictWriter(open("part_error.log", 'w'),
-                                        fieldnames = ['line','ente_cf','partecipata_cf','type','data'],
+                utils.UnicodeDictWriter(open(filename, 'w'),
+                                        fieldnames = fieldnames,
                                         encoding=self.encoding,
                                         dialect="excel",
                                         escapechar  = "\\",
@@ -293,8 +380,4 @@ class Command(BaseCommand):
 
 
             self.unicode_writer.writerows(self.errors_list)
-
-            self.logger.info("Fine scrittura")
-
-
-
+            self.logger.info("Fine scrittura file")

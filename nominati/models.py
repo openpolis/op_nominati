@@ -56,7 +56,7 @@ class Partecipata(models.Model):
     )
 
     macro_tipologia = models.CharField(max_length=32, choices=MACRO_TIPOLOGIA)
-    tipologia_partecipata = models.ForeignKey('TipologiaPartecipata', on_delete=models.PROTECT)
+    tipologia_partecipata = models.ForeignKey('TipologiaPartecipata', null=True, on_delete=models.PROTECT)
     competenza_partecipata = models.ForeignKey('CompetenzaPartecipata', null=True, on_delete=models.SET_NULL)
     finalita_partecipata = models.ForeignKey('FinalitaPartecipata', null=True, on_delete=models.SET_NULL)
     url = models.URLField(blank=True, null=True)
