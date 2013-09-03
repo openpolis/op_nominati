@@ -66,8 +66,8 @@ class Partecipata(models.Model):
     provincia = models.CharField(max_length=3, null=True)
     regione = models.ForeignKey('Regione', on_delete=models.SET_NULL, null=True)
     cpt_universo_riferimento = models.CharField(max_length=8, choices=UNIVERSO_RIFERIMENTO, null=True)
-    cpt_primo_anno_rilevazione = models.CharField(max_length=5, null=True, default=None)
-    cpt_ultimo_anno_rilevazione = models.CharField(max_length=5, null=True, default=None)
+    cpt_primo_anno_rilevazione = models.CharField(max_length=5, null=True, blank=True, default=None)
+    cpt_ultimo_anno_rilevazione = models.CharField(max_length=5, null=True, blank=True, default=None)
 
     @cached_property
     def ultimo_bilancio(self):

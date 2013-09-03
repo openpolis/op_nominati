@@ -143,7 +143,11 @@ class Command(BaseCommand):
                         'comune': r['COMUNE'],
                         'cap': r['CAP'],
                         'provincia': r['PROVINCIA'],
-                        'regione': regione
+                        'regione': regione,
+                        'cpt_universo_riferimento': r['CPT_Universo_riferimento'],
+                        'cpt_primo_anno_rilevazione':r['CPT_Primo_Anno_Rilevazione'],
+                        'cpt_ultimo_anno_rilevazione':r['CPT_Ultimo_Anno_Rilevazione']
+
                     }
                 )
 
@@ -158,6 +162,9 @@ class Command(BaseCommand):
                         partecipata.cap = r['CAP']
                         partecipata.provincia = r['PROVINCIA']
                         partecipata.regione = regione
+                        partecipata.cpt_universo_riferimento = r['CPT_Universo_riferimento']
+                        partecipata.cpt_primo_anno_rilevazione = r['CPT_Primo_Anno_Rilevazione']
+                        partecipata.cpt_ultimo_anno_rilevazione = r['CPT_Ultimo_Anno_Rilevazione']
                         partecipata.save()
 
                         self.logger.info("%s: Partecipata presente aggiornata: %s" % ( cf_partecipata,r['DESCRIZIONE_ENTE']))
