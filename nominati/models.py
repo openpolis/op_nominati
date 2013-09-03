@@ -23,25 +23,54 @@ class Cpt_Settore(models.Model):
     denominazione = models.CharField(max_length=255)
     codice = models.CharField(max_length=10)
 
+    def __unicode__(self):
+        return self.codice + u" - " +self.denominazione
+
+    class Meta:
+        verbose_name_plural = u'CPT Settori'
+        verbose_name= u'CPT Settore'
+
 class Cpt_Settore_Partecipata(models.Model):
-    partecipata = models.ForeignKey('Partecipata', on_delete=models.SET_DEFAULT, null=False, default='')
-    settore = models.ForeignKey('Cpt_Settore', on_delete=models.SET_DEFAULT, null=False, default='')
+    partecipata = models.ForeignKey('Partecipata', on_delete=models.CASCADE, null=False, default='')
+    settore = models.ForeignKey('Cpt_Settore', on_delete=models.CASCADE, null=False, default='')
 
 class Cpt_Categoria(models.Model):
     denominazione = models.CharField(max_length=255)
     codice = models.CharField(max_length=3)
+
+    def __unicode__(self):
+        return self.codice + u" - " +self.denominazione
+
+    class Meta:
+        verbose_name_plural = u'CPT Categorie'
+        verbose_name= u'CPT Categoria'
 
 class Cpt_Sottocategoria(models.Model):
     denominazione = models.CharField(max_length=255)
     codice = models.CharField(max_length=1)
     categoria = models.ForeignKey('Cpt_Categoria', on_delete=models.CASCADE, null=False)
 
+    def __unicode__(self):
+        return self.categoria.__unicode__() + u" - "+self.codice + u" - " +self.denominazione
+
+    class Meta:
+        verbose_name_plural = u'CPT Sottocategorie'
+        verbose_name= u'CPT Sottocategoria'
+
 class Cpt_Sottotipo(models.Model):
     denominazione = models.CharField(max_length=255)
     codice = models.CharField(max_length=2)
     sottocategoria = models.ForeignKey('Cpt_Sottocategoria', on_delete=models.CASCADE, null=False)
 
+    def __unicode__(self):
+        return self.sottocategoria.__unicode__() + u' - ' + self.codice + u" - " +self.denominazione
+
+    class Meta:
+        verbose_name_plural = u'CPT Sottotipo'
+        verbose_name= u'CPT Sottotipo'
+
 class Partecipata(models.Model):
+
     codice_fiscale = models.CharField(max_length=11, primary_key=True)
     denominazione = models.CharField(max_length=255)
     MACRO_TIPOLOGIA = Choices(
@@ -65,6 +94,11 @@ class Partecipata(models.Model):
     comune = models.CharField(max_length=50, null=True)
     provincia = models.CharField(max_length=3, null=True)
     regione = models.ForeignKey('Regione', on_delete=models.SET_NULL, null=True)
+
+    cpt_categoria = models.ForeignKey('Cpt_Categoria', null=True, on_delete=models.SET_NULL)
+    cpt_sottocategoria = models.ForeignKey('Cpt_Sottocategoria', null=True, on_delete=models.SET_NULL)
+    cpt_sottotipo = models.ForeignKey('Cpt_Sottotipo', null=True, on_delete=models.SET_NULL)
+
     cpt_universo_riferimento = models.CharField(max_length=8, choices=UNIVERSO_RIFERIMENTO, null=True)
     cpt_primo_anno_rilevazione = models.CharField(max_length=5, null=True, blank=True, default=None)
     cpt_ultimo_anno_rilevazione = models.CharField(max_length=5, null=True, blank=True, default=None)

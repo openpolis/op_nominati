@@ -11,6 +11,17 @@ import re
 from django.utils.http import urlencode
 
 
+class Cpt_SettoreAdmin(admin.ModelAdmin):
+    model = Cpt_Settore
+
+class Cpt_CategoriaAdmin(admin.ModelAdmin):
+    model= Cpt_Categoria
+
+class Cpt_SottocategoriaAdmin(admin.ModelAdmin):
+    model= Cpt_Sottocategoria
+
+class Cpt_SottotipoAdmin(admin.ModelAdmin):
+    model= Cpt_Sottotipo
 
 class PartecipazioneInline(ImproveRawIdFieldsTabularInlineForm):
     model = Partecipazione
@@ -122,3 +133,7 @@ admin.site.register(Partecipata, PartecipataAdmin)
 admin.site.register(Persona, PersonaAdmin)
 admin.site.register(TipoCarica)
 
+admin.site.register(Cpt_Categoria,Cpt_CategoriaAdmin)
+admin.site.register(Cpt_Sottocategoria,Cpt_SottocategoriaAdmin)
+admin.site.register(Cpt_Sottotipo,Cpt_SottotipoAdmin)
+admin.site.register(Cpt_Settore,Cpt_SettoreAdmin)

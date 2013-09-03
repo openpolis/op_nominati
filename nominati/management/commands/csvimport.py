@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 from _csv import QUOTE_MINIMAL, QUOTE_NONE
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.management.base import BaseCommand, CommandError, LabelCommand
+from django.core.management.base import BaseCommand
 from django.conf import settings
 import csv
 from optparse import make_option
 import logging
 from nominati import utils
-from nominati.models import Persona, Ente, Partecipata, Partecipazione, Regione, Comparto, TipologiaPartecipata
+from nominati.models import Persona, Ente, Partecipata, Partecipazione, Regione, Comparto, TipologiaPartecipata,\
+    Cpt_Categoria, Cpt_Settore, Cpt_Settore_Partecipata, Cpt_Sottocategoria, Cpt_Sottotipo
 import pprint
 
 
@@ -112,71 +113,139 @@ class Command(BaseCommand):
         for r in self.unicode_reader:
             existing_partecipata = False
 
-            # zero padding for codice fiscale
-            cf_partecipata = r['IDFISC_ENTE'].zfill(11)
+            if r['IDFISC_ENTE'] != '*':
+                
+                # zero padding for codice fiscale
+                cf_partecipata = r['IDFISC_ENTE'].zfill(11)
 
-            #  if partecipata is not in the db, insert new Partecipata
-            regione = None
+                #  if partecipata is not in the db, insert new Partecipata
+                regione = None
 
-            nome_regione = r['REGIONE']
+                nome_regione = r['REGIONE']
 
-            # fixes for CSV errors
-            if nome_regione == 'Friuli Venezia Giulia':
-                nome_regione='FRIULI-VENEZIA GIULIA'
-            if nome_regione == 'Emilia Romagna':
-                nome_regione='EMILIA-ROMAGNA'
-            if nome_regione == 'Provincia Autonoma di Bolzano' or nome_regione == 'Provincia Autonoma di Trento':
-                nome_regione='TRENTINO-ALTO ADIGE'
+                # fixes for CSV errors
+                if nome_regione == 'Friuli Venezia Giulia':
+                    nome_regione='FRIULI-VENEZIA GIULIA'
+                if nome_regione == 'Emilia Romagna':
+                    nome_regione='EMILIA-ROMAGNA'
+                if nome_regione == 'Provincia Autonoma di Bolzano' or nome_regione == 'Provincia Autonoma di Trento':
+                    nome_regione='TRENTINO-ALTO ADIGE'
 
-            try:
-                regione = Regione.objects.get(denominazione=nome_regione.upper())
-            except ObjectDoesNotExist:
-                self.logger.error("%s: Regione non presente, impossibile aggiungere il record con cf: %s" % ( c, cf_partecipata))
-                self.errors_list.append({'line':str(c),'partecipata_cf': str(cf_partecipata),'type':'Regione non presente', 'data': r['REGIONE']})
-            else:
-
-                partecipata, partecipata_created = Partecipata.objects.get_or_create(
-                    codice_fiscale=cf_partecipata,
-                    defaults={
-                        'denominazione':r['DESCRIZIONE_ENTE'],
-                        'indirizzo': r['INDIRIZZO_ENTE'],
-                        'comune': r['COMUNE'],
-                        'cap': r['CAP'],
-                        'provincia': r['PROVINCIA'],
-                        'regione': regione,
-                        'cpt_universo_riferimento': r['CPT_Universo_riferimento'],
-                        'cpt_primo_anno_rilevazione':r['CPT_Primo_Anno_Rilevazione'],
-                        'cpt_ultimo_anno_rilevazione':r['CPT_Ultimo_Anno_Rilevazione']
-
-                    }
-                )
-
-                if partecipata_created is True:
-                    self.logger.info("%s: Partecipata inserita: %s" % ( cf_partecipata,r['DESCRIZIONE_ENTE']))
+                try:
+                    regione = Regione.objects.get(denominazione=nome_regione.upper())
+                except ObjectDoesNotExist:
+                    self.logger.error("%s: Regione non presente, impossibile aggiungere il record con cf: %s" % ( c, cf_partecipata))
+                    self.errors_list.append({'line':str(c),'partecipata_cf': str(cf_partecipata),'type':'Regione non presente', 'data': r['REGIONE']})
                 else:
-                    if options['update']:
 
-                        partecipata.denominazione = r['DESCRIZIONE_ENTE']
-                        partecipata.indirizzo = r['INDIRIZZO_ENTE']
-                        partecipata.comune = r['COMUNE']
-                        partecipata.cap = r['CAP']
-                        partecipata.provincia = r['PROVINCIA']
-                        partecipata.regione = regione
-                        partecipata.cpt_universo_riferimento = r['CPT_Universo_riferimento']
-                        partecipata.cpt_primo_anno_rilevazione = r['CPT_Primo_Anno_Rilevazione']
-                        partecipata.cpt_ultimo_anno_rilevazione = r['CPT_Ultimo_Anno_Rilevazione']
-                        partecipata.save()
+                    # checks if the category exists, otherwise it enters it in the db
+                    cpt_cod_categoria = r['CPT_COD_CATEGORIA']
+                    cpt_cod_sottocategoria = r['CPT_COD_SOTTOTIPO'][3]
+                    cpt_cod_sottotipo = r['CPT_COD_SOTTOTIPO'][4:]
 
-                        self.logger.info("%s: Partecipata presente aggiornata: %s" % ( cf_partecipata,r['DESCRIZIONE_ENTE']))
+                    cpt_categoria, categoria_created = Cpt_Categoria.objects.get_or_create(
+                        codice = cpt_cod_categoria,
+                        defaults={
+                            'denominazione': r['CPT_DESCR_CATEGORIA']
+                        }
+                    )
+                    if categoria_created is True:
+                        self.logger.info("%s: CPT Categoria inserita: %s" % ( cpt_cod_categoria,r['CPT_DESCR_CATEGORIA']))
+
+                    #     sottocategoria
+                    cpt_sottocategoria, sottocategoria_created = Cpt_Sottocategoria.objects.get_or_create(
+                        codice = cpt_cod_sottocategoria,
+                        defaults={
+                            'categoria': cpt_categoria
+                        }
+                    )
+                    if sottocategoria_created is True:
+                        self.logger.info("%s: CPT sottocategoria inserita: %s" % ( cpt_cod_sottocategoria,''))
+
+                    #     sottotipo
+                    cpt_sottotipo, sottotipo_created = Cpt_Sottotipo.objects.get_or_create(
+                        codice = cpt_cod_sottotipo,
+                        defaults={
+                            'denominazione': r['CPT_DESCR_SOTTOTIPO'],
+                            'sottocategoria': cpt_sottocategoria
+                        }
+                    )
+                    if sottotipo_created is True:
+                        self.logger.info("%s: CPT sottotipo inserito: %s" % ( cpt_cod_sottotipo,r['CPT_DESCR_SOTTOTIPO']))
+
+                    partecipata, partecipata_created = Partecipata.objects.get_or_create(
+                        codice_fiscale=cf_partecipata,
+                        defaults={
+                            'denominazione':r['DESCRIZIONE_ENTE'],
+                            'indirizzo': r['INDIRIZZO_ENTE'],
+                            'comune': r['COMUNE'],
+                            'cap': r['CAP'],
+                            'provincia': r['PROVINCIA'],
+                            'regione': regione,
+                            'cpt_universo_riferimento': r['CPT_Universo_riferimento'],
+                            'cpt_primo_anno_rilevazione':r['CPT_Primo_Anno_Rilevazione'],
+                            'cpt_ultimo_anno_rilevazione':r['CPT_Ultimo_Anno_Rilevazione'],
+                            'cpt_categoria': cpt_categoria,
+                            'cpt_sottocategoria': cpt_sottocategoria,
+                            'cpt_sottotipo': cpt_sottotipo
+
+                        }
+                    )
+
+                    if partecipata_created is True:
+                        self.logger.info("%s: Partecipata inserita: %s" % ( cf_partecipata,r['DESCRIZIONE_ENTE']))
                     else:
-                        self.logger.info("%s: Partecipata presente: %s" % ( cf_partecipata,r['DESCRIZIONE_ENTE']))
+                        if options['update']:
 
+                            partecipata.denominazione = r['DESCRIZIONE_ENTE']
+                            partecipata.indirizzo = r['INDIRIZZO_ENTE']
+                            partecipata.comune = r['COMUNE']
+                            partecipata.cap = r['CAP']
+                            partecipata.provincia = r['PROVINCIA']
+                            partecipata.regione = regione
+                            partecipata.cpt_universo_riferimento = r['CPT_Universo_riferimento']
+                            partecipata.cpt_primo_anno_rilevazione = r['CPT_Primo_Anno_Rilevazione']
+                            partecipata.cpt_ultimo_anno_rilevazione = r['CPT_Ultimo_Anno_Rilevazione']
+                            partecipata.cpt_categoria = cpt_categoria
+                            partecipata.cpt_sottocategoria = cpt_sottocategoria
+                            partecipata.cpt_sottotipo = cpt_sottotipo
+                            partecipata.save()
+
+                            self.logger.info("%s: Partecipata presente aggiornata: %s" % ( cf_partecipata,r['DESCRIZIONE_ENTE']))
+                        else:
+                            self.logger.info("%s: Partecipata presente: %s" % ( cf_partecipata,r['DESCRIZIONE_ENTE']))
+
+                    # cpt settore
+                    if not partecipata_created and options['update']:
+                        Cpt_Settore_Partecipata.objects.filter(partecipata = partecipata)
+
+                    if partecipata_created or options['update']:
+                        for i in range(1,13):
+                            cpt_settore_i = "CPT_Settore" + str(i).zfill(2)
+                            if len(r[cpt_settore_i])>0:
+                                # adds cpt settore
+                                cpt_settore_cod = r[cpt_settore_i][0:5]
+                                cpt_settore, cpt_settore_created = Cpt_Settore.objects.get_or_create(
+                                    codice = cpt_settore_cod,
+                                    defaults={
+                                        'denominazione': r[cpt_settore_i][8:]
+                                    }
+                                )
+                                if cpt_settore_created:
+                                    self.logger.info("%s: CPT settore creato: %s" % ( cpt_settore_cod,r[cpt_settore_i][8:]))
+
+                                cpt_settore_part = Cpt_Settore_Partecipata()
+                                cpt_settore_part.partecipata = partecipata
+                                cpt_settore_part.settore = cpt_settore
+                                cpt_settore_part.save()
+                                self.logger.info("%s: CPT settore partecipata inserito: %s" % ( partecipata.denominazione,cpt_settore.codice ))
+                            else:
+                                break
 
 
 
             c=+1
-            if c >= 100:
-                break
+
 
         self.write_errorlog("cptpart_error.log", fieldnames = ['line','partecipata_cf','type','data'])
         exit(1)
