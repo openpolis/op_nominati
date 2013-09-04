@@ -7,28 +7,32 @@ class UTF8Recoder:
     """
     Iterator that reads an encoded stream and reencodes the input to UTF-8
     """
-    def __init__(self, f, encoding):
+    encoding = None
+    def __init__(self, f, encoding="utf-8"):
+        self.encoding=encoding
         self.reader = codecs.getreader(encoding)(f)
 
     def __iter__(self):
         return self
 
     def next(self):
-        return self.reader.next().encode("utf-8")
+        return self.reader.next().encode(self.encoding)
 
 class UnicodeDictReader:
     """
     A CSV reader which will iterate over lines in the CSV file "f",
     which is encoded in the given encoding.
     """
+    encoding = None
 
     def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
         f = UTF8Recoder(f, encoding)
+        self.encoding=encoding
         self.reader = csv.DictReader(f, dialect=dialect, **kwds)
 
     def next(self):
         row = self.reader.next()
-        return dict((k, unicode(s, "utf-8")) for k, s in row.iteritems() if s is not None)
+        return dict((k, unicode(s, self.encoding)) for k, s in row.iteritems() if s is not None)
 
     def __iter__(self):
         return self

@@ -253,9 +253,12 @@ class Command(BaseCommand):
 
         if self.csv_file=='':
             self.csv_file = './partecipazioni.csv'
+        if not options['year']:
+            self.logger.error("Year value is needed for import. Ex: --year=2001 \n")
+            exit(1)
 
         self.logger.info('CSV FILE "%s"\n' % self.csv_file )
-        self.encoding='latin1'
+        self.encoding='Windows-1252'
         # read csv file
         try:
             self.unicode_reader = \
@@ -355,17 +358,17 @@ class Command(BaseCommand):
                         r_tipologia_partecipata=r['TIPOLOGIA SOCIETA']
 
                         # correction for errors in the csv
-                        if r_tipologia_partecipata == 'Societ� S.r.l.'.decode('utf-8') \
-                            or r_tipologia_partecipata == 'Societï¿½ S.r.l.'.decode('utf-8'):
+                        if r_tipologia_partecipata == 'Societ� S.r.l.'.decode(self.encoding) \
+                            or r_tipologia_partecipata == 'Societï¿½ S.r.l.'.decode(self.encoding):
                             r_tipologia_partecipata = 'Società S.r.l.'
-                        if r_tipologia_partecipata == 'Societ� S.p.a.'.decode('utf-8')\
+                        if r_tipologia_partecipata == 'Societ� S.p.a.'.decode(self.encoding)\
                             or r_tipologia_partecipata == 'Societï¿½ S.p.a.':
                             r_tipologia_partecipata = 'Società S.p.a.'
-                        if r_tipologia_partecipata == 'Societï¿½ di Trasformazione Urbana'.decode('utf-8'):
+                        if r_tipologia_partecipata == 'Societï¿½ di Trasformazione Urbana'.decode(self.encoding):
                             r_tipologia_partecipata = 'Società di Trasformazione Urbana'
-                        if r_tipologia_partecipata == 'Azienda Speciale'.decode('utf-8'):
+                        if r_tipologia_partecipata == 'Azienda Speciale'.decode(self.encoding):
                             r_tipologia_partecipata = 'Azienda speciale'
-                        if r_tipologia_partecipata == 'ALTRO TIPO DI SOCIETA\''.decode('utf-8'):
+                        if r_tipologia_partecipata == 'ALTRO TIPO DI SOCIETA\''.decode(self.encoding):
                             r_tipologia_partecipata = 'Altro tipo di società'
 
                         try:
@@ -428,12 +431,12 @@ class Command(BaseCommand):
 
             c += 1
 
-            self.write_errorlog("part_error.log", fieldnames = ['line','ente_cf','partecipata_cf','type','data'])
+        self.write_errorlog("part_error.log", fieldnames = ['line','ente_cf','partecipata_cf','type','data'])
 
-            if added_partecipata > 0:
-                self.logger.info("Aggiunte %s nuove partecipate", added_partecipata)
-            if added_enti> 0:
-                self.logger.info("Aggiunti %s nuovi enti", added_enti)
+        if added_partecipata > 0:
+            self.logger.info("Aggiunte %s nuove partecipate", added_partecipata)
+        if added_enti> 0:
+            self.logger.info("Aggiunti %s nuovi enti", added_enti)
 
 
 
