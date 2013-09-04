@@ -10,7 +10,7 @@
     <h2>Regioni</h2>
    <ul>
    {% for regione in  object_list%}
-   <li><a href="{% url nominati_regione_detail regione.pk %}">{{ regione.nome }}</a></li>
+   <li><a href="{% url nominati_regione_detail regione.pk %}">{{ regione.denominazione }}</a></li>
    {% endfor %}
   </ul>
 
