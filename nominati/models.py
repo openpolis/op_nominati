@@ -31,6 +31,9 @@ class Cpt_Settore(models.Model):
         verbose_name= u'CPT Settore'
 
 class Cpt_Settore_Partecipata(models.Model):
+    def __unicode__(self):
+        return self.partecipata.denominazione + u" - " +self.settore.denominazione
+
     partecipata = models.ForeignKey('Partecipata', on_delete=models.CASCADE, null=False, default='')
     settore = models.ForeignKey('Cpt_Settore', on_delete=models.CASCADE, null=False, default='')
 
@@ -46,9 +49,10 @@ class Cpt_Categoria(models.Model):
         verbose_name= u'CPT Categoria'
 
 class Cpt_Sottocategoria(models.Model):
-    denominazione = models.CharField(max_length=255)
-    codice = models.CharField(max_length=1)
+
     categoria = models.ForeignKey('Cpt_Categoria', on_delete=models.CASCADE, null=False)
+    codice = models.CharField(max_length=1)
+    denominazione = models.CharField(max_length=255)
 
     def __unicode__(self):
         return self.categoria.__unicode__() + u" - "+self.codice + u" - " +self.denominazione
@@ -63,7 +67,11 @@ class Cpt_Sottotipo(models.Model):
     sottocategoria = models.ForeignKey('Cpt_Sottocategoria', on_delete=models.CASCADE, null=False)
 
     def __unicode__(self):
-        return self.sottocategoria.__unicode__() + u' - ' + self.codice + u" - " +self.denominazione
+        denominazione=self.denominazione
+        if len(denominazione)>90:
+            denominazione=denominazione[:90]+u'...'
+
+        return u"C:"+self.sottocategoria.categoria.codice +u" - " + u"SC:"+self.sottocategoria.codice +u" - " +self.codice + u" - " +denominazione
 
     class Meta:
         verbose_name_plural = u'CPT Sottotipo'

@@ -19,9 +19,16 @@ class Cpt_CategoriaAdmin(admin.ModelAdmin):
 
 class Cpt_SottocategoriaAdmin(admin.ModelAdmin):
     model= Cpt_Sottocategoria
+    ordering = ['categoria__codice','codice']
 
 class Cpt_SottotipoAdmin(admin.ModelAdmin):
     model= Cpt_Sottotipo
+    ordering = ['sottocategoria__categoria__codice','sottocategoria__codice','codice']
+
+class Cpt_Settore_PartecipataInline(admin.TabularInline):
+    model = Cpt_Settore_Partecipata
+    extra = 0
+
 
 class PartecipazioneInline(ImproveRawIdFieldsTabularInlineForm):
     model = Partecipazione
@@ -45,7 +52,7 @@ class EnteAdmin(admin.ModelAdmin):
     list_filter = ('comparto',)
 
 class PartecipataAdmin(admin.ModelAdmin):
-    inlines = (BilancioInline, PartecipazioneInline, IncaricoInline )
+    inlines = (BilancioInline, PartecipazioneInline, IncaricoInline, Cpt_Settore_PartecipataInline )
     search_fields = ['denominazione', '^codice_fiscale']
     list_filter = ('tipologia_partecipata', 'competenza_partecipata')
 

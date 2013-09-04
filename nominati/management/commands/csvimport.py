@@ -114,7 +114,7 @@ class Command(BaseCommand):
             existing_partecipata = False
 
             if r['IDFISC_ENTE'] != '*':
-                
+
                 # zero padding for codice fiscale
                 cf_partecipata = r['IDFISC_ENTE'].zfill(11)
 
@@ -154,20 +154,18 @@ class Command(BaseCommand):
 
                     #     sottocategoria
                     cpt_sottocategoria, sottocategoria_created = Cpt_Sottocategoria.objects.get_or_create(
+                        categoria =  cpt_categoria,
                         codice = cpt_cod_sottocategoria,
-                        defaults={
-                            'categoria': cpt_categoria
-                        }
                     )
                     if sottocategoria_created is True:
                         self.logger.info("%s: CPT sottocategoria inserita: %s" % ( cpt_cod_sottocategoria,''))
 
                     #     sottotipo
                     cpt_sottotipo, sottotipo_created = Cpt_Sottotipo.objects.get_or_create(
+                        sottocategoria = cpt_sottocategoria,
                         codice = cpt_cod_sottotipo,
                         defaults={
                             'denominazione': r['CPT_DESCR_SOTTOTIPO'],
-                            'sottocategoria': cpt_sottocategoria
                         }
                     )
                     if sottotipo_created is True:
@@ -217,7 +215,7 @@ class Command(BaseCommand):
 
                     # cpt settore
                     if not partecipata_created and options['update']:
-                        Cpt_Settore_Partecipata.objects.filter(partecipata = partecipata)
+                        Cpt_Settore_Partecipata.objects.filter(partecipata = partecipata).delete()
 
                     if partecipata_created or options['update']:
                         for i in range(1,13):
