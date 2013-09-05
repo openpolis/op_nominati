@@ -1,6 +1,6 @@
 from rest_framework import generics
-from api.serializers import EnteSerializer
-from nominati.models import Ente
+from api.serializers import EnteSerializer, PartecipazioneSerializer
+from nominati.models import Ente, Partecipazione
 
 
 class EntiList(generics.ListAPIView):
@@ -18,4 +18,16 @@ class EntiList(generics.ListAPIView):
             return Ente.objects.filter(denominazione__icontains=qterm)
         else:
             return Ente.objects.all()
+
+
+class PartecipazioniList(generics.ListAPIView):
+    """
+    API endpoint that allows Partecipazioni to be viewed
+    """
+    queryset = Partecipazione.objects.all()[:90]
+    serializer_class = PartecipazioneSerializer
+    paginate_by = 0
+
+
+
 
