@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from nominati.models import Ente, Partecipazione
+from nominati.models import Ente, Partecipazione, Partecipata
 
 
 class EnteSerializer(serializers.HyperlinkedModelSerializer):
@@ -8,7 +8,15 @@ class EnteSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('denominazione','codice_fiscale')
 
 
-class PartecipazioneSerializer(serializers.HyperlinkedModelSerializer):
+class PartecipataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Partecipata
+        fields = ('denominazione',)
+
+
+class PartecipazioneSerializer(serializers.ModelSerializer):
+    partecipata_cf = PartecipataSerializer(many=False)
+
     class Meta:
         model = Partecipazione
-        fields = ('anno',)
+        fields = ('percentuale_partecipazione', 'partecipata_cf')

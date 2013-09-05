@@ -28,6 +28,13 @@ class PartecipazioniList(generics.ListAPIView):
     serializer_class = PartecipazioneSerializer
     paginate_by = 0
 
-
+    def get_queryset(self):
+        if 'istat' in self.request.GET and 'anno' in self.request.GET:
+            istat = self.request.GET['istat']
+            anno = self.request.GET['anno']
+            return Partecipazione.objects. \
+                filter(anno=anno, ente_cf__codice_istat=istat)
+        else:
+            return Partecipazione.objects.all()[:90]
 
 
