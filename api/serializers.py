@@ -5,6 +5,6 @@ from nominati.models import Ente
 class EnteSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Ente
-        fields = ('denominazione',)
+        fields = ('denominazione','codice_fiscale')
 
 

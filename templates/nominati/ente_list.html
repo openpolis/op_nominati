@@ -35,13 +35,15 @@
             $( "#ente" ).autocomplete({
                 source: function( request, response ) {
                     $.getJSON(
-                            "{{ SITE_URL }}/enti.json",
-                            {'qterm': request.term },
+
+                            "{% url api_enti  %}",
+                            {'qterm': request.term, 'format': 'json' },
+
                             function( data ) {
                                 response( $.map( data, function( item ) {
                                     return {
-                                        label: item.fields.denominazione,
-                                        circ: item.pk
+                                        label: item.denominazione,
+                                        circ: item.codice_fiscale
                                     }
                                 }));
                             }
