@@ -229,6 +229,7 @@ class Ente(models.Model):
     regione = models.ForeignKey('Regione')
     comparto = models.ForeignKey('Comparto')
     partecipata_set = models.ManyToManyField('Partecipata', through='Partecipazione')
+    codice_istat = models.CharField(max_length=6, null=True, blank=True)
 
     @property
     def partecipate(self):
@@ -260,6 +261,9 @@ class Partecipazione(models.Model):
     class Meta:
         verbose_name = u'Partecipazione'
         verbose_name_plural = u'Partecipazioni'
+
+    def __unicode__(self):
+        return self.ente_cf.__unicode__() +u' - '+self.partecipata_cf.__unicode__() +u' - '+self.anno
 
 
 class Persona(models.Model):

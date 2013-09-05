@@ -13,7 +13,7 @@ from django.template.defaultfilters import slugify
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-from nominati.models import Incarico, Ente, Persona, TipoCarica, Regione, Partecipata, Bilancio
+from nominati.models import Incarico, Ente, Persona, TipoCarica, Regione, Partecipata, Bilancio, Partecipazione
 import json
 from json.encoder import JSONEncoder
 import urllib2
@@ -34,8 +34,14 @@ class DjangoJSONEncoder(JSONEncoder):
             # `default` must return a python serializable
             # structure, the easiest way is to load the JSON
             # string produced by `serialize` and return it
-            return json.loads(serialize('json', obj))
+
+            return json.dumps([t for t in obj])
+            # return json.loads(serialize('json', obj, ))
+
         return JSONEncoder.default(self,obj)
+        # return json.dumps([unicode(t) for t in obj])
+
+
 dumps = curry(json.dumps, cls=DjangoJSONEncoder)
 
 class JSONResponseMixin(object):
@@ -56,22 +62,6 @@ class JSONResponseMixin(object):
         # objects -- such as Django model instances or querysets
         # -- can be serialized as JSON.
         return dumps(context)
-
-
-class EnteListView(AccessControlView, ListView):
-    model = Ente
-
-    def get_context_data(self, **kwargs):
-        context = super(EnteListView, self).get_context_data(**kwargs)
-        context['SITE_URL'] = settings.SITE_URL
-        return context
-
-    def get_queryset(self):
-        if 'qterm' in self.request.GET:
-            qterm = self.request.GET['qterm']
-            return Ente.objects.filter(denominazione__icontains=qterm)[0:50]
-        else:
-            return Ente.objects.all()[0:50]
 
 
 class RegioneListView(AccessControlView, ListView):
@@ -330,9 +320,51 @@ class EnteDetailView(PartecipateView, DetailView):
 
         return self.context
 
+
+class EnteListView(AccessControlView, ListView):
+    model = Ente
+
+    def get_context_data(self, **kwargs):
+        context = super(EnteListView, self).get_context_data(**kwargs)
+        context['SITE_URL'] = settings.SITE_URL
+        return context
+
+    def get_queryset(self):
+        if 'qterm' in self.request.GET:
+            qterm = self.request.GET['qterm']
+            return Ente.objects.filter(denominazione__icontains=qterm)[0:50]
+        else:
+            return Ente.objects.all()[0:50]
+
+
 class EnteJSONListView(JSONResponseMixin, EnteListView):
     def convert_context_to_json(self, context):
         return dumps(context['ente_list'])
+
+
+
+class PartecipazioneListView(AccessControlView, ListView):
+    model = Partecipazione
+
+    def get_context_data(self, **kwargs):
+        context = super(PartecipazioneListView, self).get_context_data(**kwargs)
+        context['SITE_URL'] = settings.SITE_URL
+        return context
+
+    def get_queryset(self):
+        if 'istat' in self.request.GET and 'anno' in self.request.GET:
+            istat = self.request.GET['istat']
+            anno = self.request.GET['anno']
+            return Partecipazione.objects.\
+                filter(anno=anno, ente_cf__codice_istat=istat).\
+                values('partecipata_cf__codice_fiscale','partecipata_cf__denominazione','percentuale_partecipazione')
+
+
+
+class PartecipazioneJSONListView(JSONResponseMixin, PartecipazioneListView):
+    def convert_context_to_json(self, context):
+        if 'partecipazione_list' in context and len(context['partecipazione_list'])>0:
+            return dumps(context['partecipazione_list'])
 
 
 class MergePersona_OP(View):

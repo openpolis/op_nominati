@@ -11,4 +11,5 @@ log
 sqlite.db
 sqlite.db.*
 *.csv
+*.log
 prepare_venv.sh
