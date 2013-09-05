@@ -364,7 +364,12 @@ class Command(BaseCommand):
                         if r_tipologia_partecipata == 'Societ� S.p.a.'.decode(self.encoding)\
                             or r_tipologia_partecipata == 'Societï¿½ S.p.a.':
                             r_tipologia_partecipata = 'Società S.p.a.'
-                        if r_tipologia_partecipata == 'Societï¿½ di Trasformazione Urbana'.decode(self.encoding):
+                        if r_tipologia_partecipata == 'Societï¿½ di Trasformazione Urbana'.decode(self.encoding)\
+                            or (
+                                len(r_tipologia_partecipata)==33
+                                and
+                                r_tipologia_partecipata[12:]=='Trasformazione Urbana'.decode(self.encoding)
+                                ):
                             r_tipologia_partecipata = 'Società di Trasformazione Urbana'
                         if r_tipologia_partecipata == 'Azienda Speciale'.decode(self.encoding):
                             r_tipologia_partecipata = 'Azienda speciale'
