@@ -3,7 +3,7 @@ from rest_framework import generics
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from api.serializers import EnteSerializer, PartecipazioneSerializer, ComposizionePartecipataSerializer
+from api.serializers import EnteSerializer, PartecipazioneSerializer, ComposizionePartecipataSerializer, MultipleFieldLookupMixin
 from nominati.models import Ente, Partecipazione, Partecipata
 
 @api_view(('GET',))
@@ -34,13 +34,14 @@ class EntiList(generics.ListAPIView):
             return Ente.objects.all()
 
 
-class ComposizionePartecipataList(generics.ListAPIView):
+class ComposizionePartecipataList(MultipleFieldLookupMixin,generics.ListAPIView):
     """
     API endpoint that allows the composition of a Partecipata to be viewed
     """
     queryset = Partecipata.objects.all()[0].partecipazione_set.all()
     serializer_class = ComposizionePartecipataSerializer
     paginate_by = 0
+    lookup_fields = ('cf','anno')
 
     def get_queryset(self):
         if 'cf' in self.request.GET and 'anno' in self.request.GET:

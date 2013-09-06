@@ -130,8 +130,11 @@ class Partecipata(models.Model):
             Q(data_inizio__lte=now) & 
             (Q(data_fine__gte=now) | Q(data_fine__isnull=True))).aggregate(s=Sum('compenso_totale'))['s']
 
+
     def partecipata_da(self, anno):
         return self.partecipazione_set.filter(anno=anno).order_by('partecipata_cf__denominazione')
+
+
 
     def __unicode__(self):
         return self.denominazione
