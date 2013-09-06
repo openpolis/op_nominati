@@ -28,35 +28,15 @@ class RegioneSerializer(serializers.ModelSerializer):
         fields = ('denominazione',)
 
 
-
-class CustomComposizioneField(serializers.HyperlinkedRelatedField):
-
-    read_only = True
-
-    def get_url(self, obj, view_name, request, format):
-
-        kwargs = {'anno': request.GET['anno'], 'cf': obj.codice_fiscale}
-        return reverse(view_name, kwargs=kwargs, request=request, format=format)
-
-
-    def get_object(self, queryset, view_name, view_args, view_kwargs):
-        anno = view_kwargs['anno']
-        cf = view_kwargs['codice_fiscale']
-
-        return queryset.get(anno=anno, cf=cf)
-
-
-
 class PartecipataSerializer(serializers.ModelSerializer):
 
     regione = RegioneSerializer(many=False)
-    partecipata_da = CustomComposizioneField(view_name='api-composizione-partecipata')
 
     class Meta:
         model = Partecipata
         fields = (
             'codice_fiscale','denominazione','indirizzo', 'comune', 'cap',
-            'provincia', 'regione','macro_tipologia','url', 'partecipata_da'
+            'provincia', 'regione','macro_tipologia','url',
         )
 
 

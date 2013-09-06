@@ -15,13 +15,18 @@ def api_root(request, format=None):
     return Response({
         'enti': reverse('api-enti', request=request, format=format),
         'partecipazioni': reverse('api-partecipazioni', request=request, format=format),
+        'composizione-partecipata': reverse('api-composizione-partecipata', request=request, format=format),
     })
 
 class EntiList(generics.ListAPIView):
     """
     API endpoint that allows Ente to be viewed
+
+    Parameters:
+    qterm = string being present in the denominazione of the Ente
+    [format=json]
     """
-    queryset = Ente.objects.all()[:90]
+    queryset = Ente.objects.all()[:10]
     serializer_class = EnteSerializer
     paginate_by = 0
 
@@ -29,16 +34,22 @@ class EntiList(generics.ListAPIView):
     def get_queryset(self):
         if 'qterm' in self.request.GET:
             qterm = self.request.GET['qterm']
-            return Ente.objects.filter(denominazione__icontains=qterm)
+            return Ente.objects.filter(denominazione__icontains=qterm).order_by('denominazione')
         else:
-            return Ente.objects.all()
+            return Ente.objects.all().order_by('denominazione')[:10]
 
 
 class ComposizionePartecipataList(MultipleFieldLookupMixin,generics.ListAPIView):
     """
     API endpoint that allows the composition of a Partecipata to be viewed
+
+    Parameters:
+    anno=year
+    cf=partecipata codice fiscale
+    [format=json]
     """
-    queryset = Partecipata.objects.all()[0].partecipazione_set.all()
+    queryset = Partecipata.objects.all()[0].partecipazione_set.order_by('ente_cf__denominazione')
+
     serializer_class = ComposizionePartecipataSerializer
     paginate_by = 0
     lookup_fields = ('cf','anno')
@@ -53,11 +64,20 @@ class ComposizionePartecipataList(MultipleFieldLookupMixin,generics.ListAPIView)
                 return self.queryset
 
             return partecipata.partecipazione_set.filter(anno=anno).order_by('ente_cf__denominazione')
+        else:
+            return self.queryset
 
 
 class PartecipazioniList(generics.ListAPIView):
     """
     API endpoint that allows Partecipazioni to be viewed
+
+    Parameters:
+    anno = year
+    istat = istat code of a comune
+    complete = 0 or 1. If '1': displays all the partecipate, otherwise it excludes the partecipate with
+     percentage of partecipazione == 0
+    [format=json]
     """
     queryset = Partecipazione.objects.all().order_by('partecipata_cf__denominazione')[:10]
     serializer_class = PartecipazioneSerializer
