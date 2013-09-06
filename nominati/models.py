@@ -293,18 +293,21 @@ class Persona(models.Model):
         return self.incarico_set.all()
 
     @property
+    def n_incarichi(self):
+        return self.incarico_set.all().count()
+
+    @property
     def op_id(self):
         if self.openpolis_id !=  '' and self.openpolis_id is not None:
             return int(self.openpolis_id)
         else:
             return None
 
-    def __unicode__(self):
-        return self.nome + " " + self.cognome
-
     def has_op_id(self):
         return True if self.openpolis_id else False;
 
+    def __unicode__(self):
+        return self.nome + " " + self.cognome
 
     class Meta:
         verbose_name_plural = u'Persone'

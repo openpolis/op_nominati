@@ -3,8 +3,9 @@ from rest_framework import generics
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from api.serializers import EnteSerializer, PartecipazioneSerializer, ComposizionePartecipataSerializer, MultipleFieldLookupMixin
-from nominati.models import Ente, Partecipazione, Partecipata
+from api.serializers import EnteSerializer, PartecipazioneSerializer, ComposizionePartecipataSerializer, MultipleFieldLookupMixin,IncarichiSerializer
+from nominati.models import Ente, Partecipazione, Partecipata, Incarico, Persona
+
 
 @api_view(('GET',))
 def api_root(request, format=None):
@@ -16,6 +17,7 @@ def api_root(request, format=None):
         'enti': reverse('api-enti', request=request, format=format),
         'partecipazioni': reverse('api-partecipazioni', request=request, format=format),
         'composizione-partecipata': reverse('api-composizione-partecipata', request=request, format=format),
+        'incarichi': reverse('api-incarichi', request=request, format=format),
     })
 
 class EntiList(generics.ListAPIView):
@@ -106,6 +108,37 @@ class PartecipazioniList(generics.ListAPIView):
                         order_by('partecipata_cf__denominazione')
             else:
                 return self.queryset
+        else:
+            return self.queryset
+
+
+
+
+
+class IncarichiList(generics.ListAPIView):
+    """
+    API endpoint that allows Incarichi to be viewed
+
+    Parameters:
+    op_id = id openpolis of persona
+
+    [format=json]
+    """
+    queryset = Incarico.objects.all()[:10]
+    serializer_class = IncarichiSerializer
+    paginate_by = 0
+
+    def get_queryset(self):
+        if 'op_id' in self.request.GET:
+            op_id = self.request.GET['op_id']
+            try:
+                persona =  Persona.objects.get(openpolis_id=op_id)
+            except ObjectDoesNotExist:
+                return self.queryset
+
+            return persona.incarico_set.all().order_by('-data_inizio')
+
+
         else:
             return self.queryset
 

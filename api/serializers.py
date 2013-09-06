@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 from rest_framework.reverse import reverse
-from nominati.models import Ente, Partecipazione, Partecipata, Regione
+from nominati.models import Ente, Partecipazione, Partecipata, Regione, Incarico, TipoCarica
+
 
 class MultipleFieldLookupMixin(object):
     """
@@ -53,3 +54,19 @@ class ComposizionePartecipataSerializer(serializers.ModelSerializer):
     class Meta:
         model= Partecipazione
         fields = ('percentuale_partecipazione', 'ente_cf')
+
+class TipoCaricaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=TipoCarica
+        fields = ('denominazione',)
+
+
+class IncarichiSerializer(serializers.ModelSerializer):
+    ente_nominante_cf = EnteSerializer(many=False)
+    tipo_carica = TipoCaricaSerializer(many=False)
+    partecipata_cf = PartecipataSerializer(many=False)
+
+    class Meta:
+        model = Incarico
+        fields = ('compenso_anno', 'compenso_carica','altri_compensi','compenso_totale','indennita_risultato',
+            'tipo_carica','data_inizio', 'data_fine', 'ente_nominante_cf', 'partecipata_cf')
