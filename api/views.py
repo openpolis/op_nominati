@@ -29,12 +29,27 @@ class PartecipazioniList(generics.ListAPIView):
     paginate_by = 0
 
     def get_queryset(self):
-        if 'istat' in self.request.GET and 'anno' in self.request.GET:
+        if 'istat' in self.request.GET and \
+            'anno' in self.request.GET and \
+            'complete' in self.request.GET:
+
             istat = self.request.GET['istat']
             anno = self.request.GET['anno']
-            return Partecipazione.objects. \
-                filter(anno=anno, ente_cf__codice_istat=istat)
+            # if the "complete" flag is true all the Partecipazioni are displayed
+            # even those with 0% of partecipazione
+            complete = self.request.GET['complete']
+
+            if complete in ['1','0']:
+
+                if complete == '1':
+                    return Partecipazione.objects. \
+                        filter(anno=anno, ente_cf__codice_istat=istat)
+                else:
+                    return Partecipazione.objects. \
+                        filter(anno=anno, ente_cf__codice_istat=istat, percentuale_partecipazione__gt = 0)
+            else:
+                return []
         else:
-            return Partecipazione.objects.all()[:90]
+            return []
 
 

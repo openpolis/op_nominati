@@ -254,7 +254,7 @@ class Partecipazione(models.Model):
     partecipata_cf = models.ForeignKey('Partecipata', verbose_name=u'Partecipata', db_column='partecipata_cf')
     anno = models.CharField(max_length=4) 
     onere_complessivo = models.CharField(max_length=255, blank=True)
-    percentuale_partecipazione = models.CharField(max_length=255, blank=True)
+    percentuale_partecipazione = models.FloatField(null=True, blank=True)
     dichiarazione_inviata = models.CharField(max_length=2, choices=SENT, blank=True)
 
 
