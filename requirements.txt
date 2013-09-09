@@ -1,5 +1,11 @@
-Django==1.4.1
+Django==1.4
+Pygments==1.5
 South==0.7.5
+argparse==1.2.1
+distribute==0.6.24
+django-debug-toolbar==0.9.4
 django-extensions==0.8
 -e git://github.com/carljm/django-model-utils.git@ea4f98d91f6056302ca6eee54b38abd534c0d567#egg=django_model_utils-dev
+djangorestframework==2.3.7
+docutils==0.9.1
 wsgiref==0.1.2
