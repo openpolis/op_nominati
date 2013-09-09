@@ -3,6 +3,7 @@ from _csv import QUOTE_MINIMAL, QUOTE_NONE
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 from django.conf import settings
+import re
 import csv
 from optparse import make_option
 import logging
@@ -413,7 +414,7 @@ class Command(BaseCommand):
                     # if update is true we update existing records about partecipazione
                     if options['update'] is True and partecipazione is not None:
                         partecipazione.onere_complessivo = r['ONERE COMPLESSIVO']
-                        partecipazione.percentuale_partecipazione = r['PERCENTUALE PARTECIPAZIONE']
+                        partecipazione.percentuale_partecipazione  = re.sub(',', '.', r['PERCENTUALE PARTECIPAZIONE'])
                         partecipazione.dichiarazione_inviata = r['DICHIARAZIONE INVIATA']
                         partecipazione.save()
                         self.logger.info("%s: Partecipazione aggiornata: %s" % ( c,r['DENOMINAZIONE_CONS_SOC']))
@@ -429,7 +430,7 @@ class Command(BaseCommand):
                             partecipazione.partecipata_cf = partecipata
                             partecipazione.ente_cf = ente
                             partecipazione.onere_complessivo = r['ONERE COMPLESSIVO']
-                            partecipazione.percentuale_partecipazione = r['PERCENTUALE PARTECIPAZIONE']
+                            partecipazione.percentuale_partecipazione  = re.sub(',', '.', r['PERCENTUALE PARTECIPAZIONE'])
                             partecipazione.dichiarazione_inviata = r['DICHIARAZIONE INVIATA']
                             partecipazione.save()
                             self.logger.info("%s: Partecipazione inserita: %s" % ( c,r['DENOMINAZIONE_CONS_SOC']))
