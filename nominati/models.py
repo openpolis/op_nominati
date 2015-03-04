@@ -184,8 +184,9 @@ class Bilancio(models.Model):
     )
 
     anno = models.CharField(max_length=4)
-    resoconto = models.IntegerField(choices=RESOCONTO)
-    dettaglio = models.IntegerField(blank=True, null=True)
+    resoconto = models.IntegerField(verbose_name='Risultato di esercizio', choices=RESOCONTO)
+    dettaglio = models.IntegerField(verbose_name='Importo del risultato di esercizio', blank=True, null=True)
+    patrimonio_netto = models.IntegerField(verbose_name='Patrimonio netto', blank=True, null=True)
     partecipata_cf = models.ForeignKey('Partecipata', db_column='partecipata_cf')
 
     class Meta:
